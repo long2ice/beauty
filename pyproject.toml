@@ -1,0 +1,58 @@
+[tool.poetry]
+authors = ["long2ice <long2ice@gmail.com>"]
+name = "beauty"
+description = "beauty"
+packages = [
+    { include = "beauty" },
+]
+readme = "README.md"
+repository = "https://github.com/long2ice/beauty.git"
+version = "0.1.0"
+
+[tool.poetry.dependencies]
+aerich = "^0.7.0"
+asyncmy = "*"
+cachetools = "*"
+meilisearch-python-async = "^0.26.0"
+python = "^3.10"
+python-dotenv = "*"
+rearq = { git = "https://github.com/long2ice/rearq.git", branch = "dev" }
+requests-html = "*"
+sentry-sdk = { version = "*", extras = ["fastapi"] }
+tenacity = "*"
+
+[tool.poetry.dev-dependencies]
+black = "*"
+isort = "*"
+mypy = "*"
+pytest = "*"
+pytest-asyncio = "*"
+ruff = "*"
+types-cachetools = "*"
+types-redis = "*"
+
+[tool.aerich]
+tortoise_orm = "beauty.settings.TORTOISE_ORM"
+location = "./migrations"
+src_folder = "./."
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 100
+target-version = ['py36', 'py37', 'py38', 'py39']
+
+[tool.pytest.ini_options]
+asyncio_mode = 'auto'
+
+[tool.mypy]
+ignore_missing_imports = true
+pretty = true
+
+[tool.ruff]
+line-length = 100
