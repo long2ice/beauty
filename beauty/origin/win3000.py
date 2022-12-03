@@ -33,7 +33,9 @@ class Win3000(OriginBase):
         await session.close()
         describe = r.html.find(".describe", first=True).text.split("作品标签")[0].strip()
         collection = await self._create_collection(title, describe)
-        works_tag = r.html.find(".works-tag", first=True).text.split("上一组")[0].strip()
+        works_tag = r.html.find(".works-tag", first=True).text
+        works_tag = works_tag.split("上一组")[0].strip()
+        works_tag = works_tag.split("下一组")[0].strip()
         pics = []
         for img in r.html.find(".bd ul li a img"):
             url = img.attrs["data-src"]
