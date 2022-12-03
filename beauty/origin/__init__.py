@@ -16,7 +16,7 @@ class OriginBase:
     def __init__(self):
         self.asession = requests_html.AsyncHTMLSession(
             browser_args={
-                "args": ["--no-sandbox", "--disable-setuid-sandbox"],
+                "args": ["--no-sandbox"],
             }
         )
         self.sem = asyncio.Semaphore(self.sem_value)
