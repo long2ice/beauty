@@ -14,11 +14,7 @@ class OriginBase:
     origin: Origin
 
     def __init__(self):
-        self.asession = requests_html.AsyncHTMLSession(
-            browser_args={
-                "args": ["--no-sandbox"],
-            }
-        )
+        self.asession = requests_html.AsyncHTMLSession()
         self.sem = asyncio.Semaphore(self.sem_value)
 
     @abc.abstractmethod

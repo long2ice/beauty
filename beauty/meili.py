@@ -1,7 +1,7 @@
 from meilisearch_python_async import Client
 from tortoise.functions import Avg
 
-from beauty.models import Picture, Collection
+from beauty.models import Collection, Picture
 from beauty.settings import settings
 
 client = Client(url=settings.MEILI_URL, api_key=settings.MEILI_MASTER_KEY)
@@ -34,9 +34,7 @@ async def add_pictures(*pictures: Picture):
             "description": p.description,
             "favorite_count": await p.favorites.all().count(),
             "avg_rating": (
-                await p.ratings.all()
-                .annotate(avg_rating=Avg("rating"))
-                .values("avg_rating")
+                await p.ratings.all().annotate(avg_rating=Avg("rating")).values("avg_rating")
             )[0]["avg_rating"]
             or 0,
         }

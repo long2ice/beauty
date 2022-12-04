@@ -5,7 +5,7 @@ from tortoise import Tortoise
 
 from beauty import meili, utils
 from beauty.enums import Origin
-from beauty.models import Picture, Collection
+from beauty.models import Collection, Picture
 from beauty.settings import settings
 
 rearq = ReArq(
@@ -41,9 +41,7 @@ async def get_origin_pictures(origin: str):
     try:
         async for pictures in obj.run():
             count += len(pictures)
-            await Picture.bulk_create(
-                pictures, update_fields=["description"], on_conflict=["url"]
-            )
+            await Picture.bulk_create(pictures, update_fields=["description"], on_conflict=["url"])
     finally:
         await obj.close()
 
@@ -64,11 +62,7 @@ async def sync_pictures():
     total = 0
     while True:
         pics = (
-            await Picture.all()
-            .order_by("id")
-            .limit(limit)
-            .offset(offset)
-            .only("id", "description")
+            await Picture.all().order_by("id").limit(limit).offset(offset).only("id", "description")
         )
         if not pics:
             break
@@ -96,8 +90,6 @@ async def sync_collections():
             break
         total += len(collections)
         await meili.add_collections(*collections)
-        logger.success(
-            f"Successfully save {len(collections)} collections, offset: {offset}"
-        )
+        logger.success(f"Successfully save {len(collections)} collections, offset: {offset}")
         offset += limit
     return total

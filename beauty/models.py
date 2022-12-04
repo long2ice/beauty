@@ -29,9 +29,7 @@ class Picture(Model):
 
 class Favorite(Model):
     user: fields.ForeignKeyRelation[User] = fields.ForeignKeyField("models.User")
-    picture: fields.ForeignKeyRelation[Picture] = fields.ForeignKeyField(
-        "models.Picture"
-    )
+    picture: fields.ForeignKeyRelation[Picture] = fields.ForeignKeyField("models.Picture")
     created_at = fields.DatetimeField(auto_now_add=True)
 
     class Meta:
@@ -51,9 +49,7 @@ class Collection(Model):
 class Rating(Model):
     user: fields.ForeignKeyRelation[User] = fields.ForeignKeyField("models.User")
     rating = fields.IntField()
-    picture: fields.ForeignKeyRelation[Picture] = fields.ForeignKeyField(
-        "models.Picture"
-    )
+    picture: fields.ForeignKeyRelation[Picture] = fields.ForeignKeyField("models.Picture")
     comment = fields.CharField(max_length=500, null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)

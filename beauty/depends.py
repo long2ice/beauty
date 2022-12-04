@@ -6,19 +6,17 @@ from typing import Dict
 
 import jwt
 from cachetools import TTLCache
-from fastapi import Header, HTTPException, Query, Depends
+from fastapi import Depends, Header, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import constr
 from starlette.requests import Request
-from starlette.status import HTTP_403_FORBIDDEN, HTTP_401_UNAUTHORIZED
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from beauty.models import User
 from beauty.redis import Key, redis
-from beauty.settings import settings, JWT_ALGORITHM
+from beauty.settings import JWT_ALGORITHM, settings
 
-nonce_cache: TTLCache = TTLCache(
-    maxsize=3600, ttl=int(datetime.timedelta(hours=1).total_seconds())
-)
+nonce_cache: TTLCache = TTLCache(maxsize=3600, ttl=int(datetime.timedelta(hours=1).total_seconds()))
 
 
 def get_sign(data: Dict, timestamp: int, nonce: str):
@@ -60,15 +58,13 @@ async def sign_required(
     nonce_cache[x_nonce] = True
     verified = get_sign(data, x_timestamp, x_nonce) == x_sign
     if not verified:
-        raise HTTPException(
-            detail="Signature verify failed", status_code=HTTP_403_FORBIDDEN
-        )
+        raise HTTPException(detail="Signature verify failed", status_code=HTTP_403_FORBIDDEN)
 
 
 async def store_keyword(
     keyword: str = Query(..., example="美女", min_length=1, max_length=10),
 ):
-    await redis.zincrby(
+    await redis.zincrby(  # type:ignore
         Key.keywords,
         1,
         keyword,
@@ -79,13 +75,9 @@ auth_scheme = HTTPBearer()
 
 
 async def auth_required(token: HTTPAuthorizationCredentials = Depends(auth_scheme)):
-    invalid_token = HTTPException(
-        status_code=HTTP_401_UNAUTHORIZED, detail="Invalid token"
-    )
+    invalid_token = HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Invalid token")
     try:
-        data = jwt.decode(
-            token.credentials, settings.SECRET, algorithms=[JWT_ALGORITHM]
-        )
+        data = jwt.decode(token.credentials, settings.SECRET, algorithms=[JWT_ALGORITHM])
     except jwt.DecodeError:
         raise invalid_token
     except jwt.ExpiredSignatureError:

@@ -2,7 +2,7 @@ import asyncio
 import itertools
 
 import requests_html
-from tenacity import retry, stop_after_attempt, wait_fixed
+from tortoise.exceptions import IntegrityError
 
 from beauty.enums import Origin
 from beauty.models import Collection, Picture
@@ -16,15 +16,17 @@ class Win3000(OriginBase):
     def get_page_url(self, page: int) -> str:
         return f"{self.homepage}/mbizhi/mn/p{page}/"
 
-    @retry(reraise=True, stop=stop_after_attempt(3), wait=wait_fixed(1))
     async def _create_collection(self, title: str, describe: str) -> Collection:
-        collection, _ = await Collection.update_or_create(
-            title=title,
-            origin=self.origin,
-            defaults=dict(
+        try:
+            collection = await Collection.create(
+                title=title,
+                origin=self.origin,
                 description=describe,
-            ),
-        )
+            )
+        except IntegrityError:
+            collection = await Collection.get(title=title, origin=self.origin)
+            collection.description = describe
+            await collection.save(update_fields=["description"])
         return collection
 
     async def _get_pics(self, href: str, title: str):

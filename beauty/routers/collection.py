@@ -19,9 +19,7 @@ async def get_collections(page: Page = Depends(Page)):
 
 
 @router.get("/search")
-async def search_collections(
-    keyword: str = Query(..., max_length=10), page: Page = Depends(Page)
-):
+async def search_collections(keyword: str = Query(..., max_length=10), page: Page = Depends(Page)):
     result = await collections_index.search(
         keyword,
         limit=page.limit,

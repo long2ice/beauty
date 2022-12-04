@@ -1,19 +1,19 @@
 import random
-from typing import List, Dict
+from typing import Any, Dict, List, Union
 
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import NonPositiveInt
 
-from beauty.depends import store_keyword, auth_required
+from beauty.depends import auth_required, store_keyword
 from beauty.meili import pictures_index
-from beauty.models import Picture, Favorite
-from beauty.redis import redis, Key
+from beauty.models import Favorite, Picture
+from beauty.redis import Key, redis
 from beauty.schemas import Page
 
 router = APIRouter()
 
 
-async def add_favorite(pictures: List[Dict], user_id: int):
+async def add_favorite(pictures: Union[List[Dict[Any, Any]], Dict[Any, Any]], user_id: int):
     for picture in pictures:
         picture["favorite"] = await Favorite.filter(
             user_id=user_id, picture_id=picture["id"]
@@ -44,7 +44,7 @@ async def get_pictures(
 
 @router.get("/keyword")
 async def get_keywords(limit: NonPositiveInt = 10):
-    data = await redis.zrevrangebyscore(
+    data = await redis.zrevrangebyscore(  # type: ignore
         Key.keywords, max="+inf", min="-inf", start=0, num=limit * 10
     )
     return random.sample(data, min(len(data), limit))
