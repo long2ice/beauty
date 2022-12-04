@@ -38,5 +38,14 @@ async def exception_handler(request: Request, exc: Exception):
     )
 
 
-class TgNotExists(Exception):
+class WeChatError(Exception):
+    def __init__(self, errcode: int, errmsg: str):
+        self.errcode = errcode
+        self.errmsg = errmsg
+
+    def __str__(self):
+        return f"errcode: {self.errcode}, errmsg: {self.errmsg}"
+
+
+class Code2SessionError(WeChatError):
     pass

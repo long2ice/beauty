@@ -5,7 +5,7 @@ from tortoise import Tortoise
 
 from beauty import meili, utils
 from beauty.enums import Origin
-from beauty.models import Picture
+from beauty.models import Picture, Collection
 from beauty.settings import settings
 
 rearq = ReArq(
@@ -41,7 +41,9 @@ async def get_origin_pictures(origin: str):
     try:
         async for pictures in obj.run():
             count += len(pictures)
-            await Picture.bulk_create(pictures, update_fields=["description"], on_conflict=["url"])
+            await Picture.bulk_create(
+                pictures, update_fields=["description"], on_conflict=["url"]
+            )
     finally:
         await obj.close()
 
@@ -55,19 +57,47 @@ async def get_origins():
         await get_origin_pictures.delay(origin)
 
 
-@rearq.task(cron="0 4 * * *")
-async def sync_origins():
+@rearq.task(cron="0 3 * * *")
+async def sync_pictures():
     limit = 10000
     offset = 0
     total = 0
     while True:
         pics = (
-            await Picture.all().order_by("id").limit(limit).offset(offset).only("id", "description")
+            await Picture.all()
+            .order_by("id")
+            .limit(limit)
+            .offset(offset)
+            .only("id", "description")
         )
         if not pics:
             break
         total += len(pics)
         await meili.add_pictures(*pics)
         logger.success(f"Successfully save {len(pics)} pics, offset: {offset}")
+        offset += limit
+    return total
+
+
+@rearq.task(cron="0 4 * * *")
+async def sync_collections():
+    limit = 10000
+    offset = 0
+    total = 0
+    while True:
+        collections = (
+            await Collection.all()
+            .order_by("id")
+            .limit(limit)
+            .offset(offset)
+            .only("id", "title", "description")
+        )
+        if not collections:
+            break
+        total += len(collections)
+        await meili.add_collections(*collections)
+        logger.success(
+            f"Successfully save {len(collections)} collections, offset: {offset}"
+        )
         offset += limit
     return total

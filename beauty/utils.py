@@ -1,3 +1,4 @@
+import asyncio
 import importlib
 import inspect
 import pkgutil
@@ -27,3 +28,8 @@ def get_origin(name: Origin) -> Type[OriginBase]:
 
 def get_origins():
     return _origins
+
+
+async def run_async(func, *args):
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, func, *args)

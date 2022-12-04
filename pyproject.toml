@@ -20,6 +20,9 @@ rearq = { git = "https://github.com/long2ice/rearq.git", branch = "dev" }
 requests-html = "*"
 sentry-sdk = { version = "*", extras = ["fastapi"] }
 tenacity = "*"
+wechatpy = "*"
+fastapi-cache2 = "^0.1.9"
+cryptography = "*"
 
 [tool.poetry.dev-dependencies]
 black = "*"

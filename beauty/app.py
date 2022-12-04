@@ -1,6 +1,8 @@
 from aerich import Command
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
 from rearq.server.app import app as rearq_server
 from starlette.middleware.cors import CORSMiddleware
 from tortoise.contrib.fastapi import register_tortoise
@@ -14,6 +16,7 @@ from beauty.exceptions import (
     validation_exception_handler,
 )
 from beauty.logging import init_logging
+from beauty.redis import redis
 from beauty.routers import router
 from beauty.settings import TORTOISE_ORM, settings
 from beauty.tasks import rearq
@@ -55,6 +58,7 @@ async def startup():
     aerich = Command(TORTOISE_ORM)
     await aerich.init()
     await aerich.upgrade()
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
 
 
 @app.on_event("shutdown")

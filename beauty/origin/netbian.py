@@ -6,6 +6,8 @@ import requests_html
 from beauty.enums import Origin
 from beauty.models import Picture
 from beauty.origin import OriginBase
+from beauty.redis import redis, Key
+from beauty.settings import settings
 
 
 class NetBian(OriginBase):
@@ -31,6 +33,7 @@ class NetBian(OriginBase):
                     continue
                 else:
                     cookies = await page.cookies()
+                    await redis.hset(Key.cookies, self.origin.value, cookies)
                     await page.close()
                     await browser.close()
                     for cookie in cookies:
@@ -79,6 +82,9 @@ class NetBian(OriginBase):
             alt = img.attrs.get("alt")
             src = src.replace("small", "")
             src = src.split(".jpg")[0][:-10] + ".jpg"
+            src = src.replace(
+                "http://img.netbian.com", settings.SITE_URL + "/img.netbian.com"
+            )
             pics.append(
                 Picture(
                     origin=Origin.netbian,

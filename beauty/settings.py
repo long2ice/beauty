@@ -1,9 +1,10 @@
-import random
 from typing import Optional
 
 import sentry_sdk
 from pydantic import BaseSettings
 from sentry_sdk.integrations.redis import RedisIntegration
+
+JWT_ALGORITHM = "HS256"
 
 
 class Settings(BaseSettings):
@@ -13,15 +14,13 @@ class Settings(BaseSettings):
     DB_URL: str
     REDIS_URL: str
     API_SECRET: str
+    SECRET: str
     ENV = "production"
     SENTRY_DSN: Optional[str]
-
-    @property
-    def random_proxy(self):
-        if not self.PROXY:
-            return None
-        proxies = self.PROXY.split(",")
-        return random.choice([*proxies, None])
+    WECHAT_APP_ID: str
+    WECHAT_APP_SECRET: str
+    CACHE_EXPIRE_SECONDS: int = 60
+    SITE_URL = "https://beauty.long2ice.com"
 
     class Config:
         env_file = ".env"
