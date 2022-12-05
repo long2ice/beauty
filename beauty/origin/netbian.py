@@ -60,9 +60,7 @@ class NetBian(OriginBase):
             alt = img.attrs.get("alt")
             src = src.replace("small", "")
             src = src.split(".jpg")[0][:-10] + ".jpg"
-            src = src.replace(
-                "http://img.netbian.com", settings.SITE_URL + "/img.netbian.com"
-            )
+            src = src.replace("http://img.netbian.com", settings.SITE_URL + "/img.netbian.com")
             pics.append(
                 Picture(
                     origin=Origin.netbian,
