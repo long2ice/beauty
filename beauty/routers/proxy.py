@@ -7,7 +7,6 @@ from starlette.responses import StreamingResponse
 
 from beauty.enums import Origin
 from beauty.redis import Key, redis
-from beauty.settings import settings
 
 router = APIRouter()
 
@@ -18,8 +17,11 @@ async def proxy_netbian(full_path: str):
     cookies = await redis.hget(Key.cookies, Origin.netbian.value)  # type: ignore
     if cookies:
         cookies = json.loads(cookies)
+        cookies = cookies.get("cookies")
+        user_agent = cookies.get("user_agent")
     else:
         cookies = []
+        user_agent = None
     httpx_cookies = httpx.Cookies()
     for cookie in cookies:
         httpx_cookies.set(cookie["name"], cookie["value"])
@@ -27,7 +29,7 @@ async def proxy_netbian(full_path: str):
         res = await client.get(
             url,
             cookies=httpx_cookies,
-            headers={"User-Agent": settings.USER_AGENT},
+            headers={"User-Agent": user_agent},
         )
         headers = res.headers
         set_cookie = headers.get("set-cookie")

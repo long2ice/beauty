@@ -2,6 +2,7 @@ import asyncio
 import json
 
 import requests_html
+from fake_useragent import UserAgent
 from playwright.async_api import async_playwright
 
 from beauty.enums import Origin
@@ -27,14 +28,25 @@ class NetBian(OriginBase):
             return res
         async with async_playwright() as p:
             browser = await p.chromium.launch()
-            context = await browser.new_context(user_agent=settings.USER_AGENT)
+            user_agent = UserAgent().random
+            context = await browser.new_context(user_agent=user_agent)
             page = await context.new_page()
             await page.goto(url)
             await page.reload()
             await asyncio.sleep(5)
             content = await page.content()
             cookies = await context.cookies()
-            await redis.hset(Key.cookies, self.origin.value, json.dumps(cookies))  # type: ignore
+            await redis.hset(  # type: ignore
+                Key.cookies,
+                self.origin.value,
+                json.dumps(
+                    {
+                        "user_agent": user_agent,
+                        "cookies": cookies,
+                    }
+                ),
+            )
+            self.asession.headers.update({"User-Agent": user_agent})
             for cookie in cookies:
                 self.asession.cookies.set(
                     cookie["name"],
