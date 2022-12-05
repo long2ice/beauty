@@ -30,6 +30,7 @@ class NetBian(OriginBase):
             context = await browser.new_context(user_agent=settings.USER_AGENT)
             page = await context.new_page()
             await page.goto(url)
+            await page.reload()
             await asyncio.sleep(5)
             content = await page.content()
             cookies = await context.cookies()
@@ -59,7 +60,9 @@ class NetBian(OriginBase):
             alt = img.attrs.get("alt")
             src = src.replace("small", "")
             src = src.split(".jpg")[0][:-10] + ".jpg"
-            src = src.replace("http://img.netbian.com", settings.SITE_URL + "/img.netbian.com")
+            src = src.replace(
+                "http://img.netbian.com", settings.SITE_URL + "/img.netbian.com"
+            )
             pics.append(
                 Picture(
                     origin=Origin.netbian,
