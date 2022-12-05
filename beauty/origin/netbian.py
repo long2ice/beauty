@@ -22,6 +22,12 @@ class NetBian(OriginBase):
         else:
             return f"{self.homepage}/shouji/meinv/index_{page}.html"
 
+    def _is_valid_cookies(self, cookies: list):
+        for cookie in cookies:
+            if cookie["name"] == "yjs_js_security_passport":
+                return True
+        return False
+
     async def request(self, url: str):
         res = await super().request(url)
         if res.status_code == 200:
@@ -36,22 +42,23 @@ class NetBian(OriginBase):
             await asyncio.sleep(5)
             content = await page.content()
             cookies = await context.cookies()
-            await redis.hset(  # type: ignore
-                Key.cookies,
-                self.origin.value,
-                json.dumps(
-                    {
-                        "user_agent": user_agent,
-                        "cookies": cookies,
-                    }
-                ),
-            )
-            self.asession.headers.update({"User-Agent": user_agent})
-            for cookie in cookies:
-                self.asession.cookies.set(
-                    cookie["name"],
-                    cookie["value"],
+            if self._is_valid_cookies(cookies):
+                await redis.hset(  # type: ignore
+                    Key.cookies,
+                    self.origin.value,
+                    json.dumps(
+                        {
+                            "user_agent": user_agent,
+                            "cookies": cookies,
+                        }
+                    ),
                 )
+                self.asession.headers.update({"User-Agent": user_agent})
+                for cookie in cookies:
+                    self.asession.cookies.set(
+                        cookie["name"],
+                        cookie["value"],
+                    )
             html = requests_html.HTML(
                 url=url,
                 html=content.encode("gbk"),
