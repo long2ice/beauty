@@ -14,11 +14,11 @@ router = APIRouter()
 @router.get("/img.netbian.com/{full_path:path}")
 async def proxy_netbian(full_path: str):
     url = f"http://img.netbian.com/{full_path}"
-    cookies = await redis.hget(Key.cookies, Origin.netbian.value)  # type: ignore
-    if cookies:
-        cookies = json.loads(cookies)
-        cookies = cookies.get("cookies")
-        user_agent = cookies.get("user_agent")
+    result = await redis.hget(Key.cookies, Origin.netbian.value)  # type: ignore
+    if result:
+        result = json.loads(result)
+        cookies = result.get("cookies")
+        user_agent = result.get("user_agent")
     else:
         cookies = []
         user_agent = None
