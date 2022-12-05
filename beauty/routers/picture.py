@@ -6,18 +6,19 @@ from pydantic import NonPositiveInt
 
 from beauty.depends import auth_required, store_keyword
 from beauty.meili import pictures_index
-from beauty.models import Favorite, Picture
+from beauty.models import Favorite, Like
 from beauty.redis import Key, redis
 from beauty.schemas import Page
 
 router = APIRouter()
 
 
-async def add_favorite(pictures: Union[List[Dict[Any, Any]], Dict[Any, Any]], user_id: int):
+async def add_extra(pictures: Union[List[Dict[Any, Any]], Dict[Any, Any]], user_id: int):
     for picture in pictures:
         picture["favorite"] = await Favorite.filter(
             user_id=user_id, picture_id=picture["id"]
         ).exists()
+        picture["like"] = await Like.filter(user_id=user_id, picture_id=picture["id"]).exists()
     return pictures
 
 
@@ -25,20 +26,22 @@ async def add_favorite(pictures: Union[List[Dict[Any, Any]], Dict[Any, Any]], us
     "",
 )
 async def get_pictures(
-    page: Page = Depends(Page), favorite: bool = False, user=Depends(auth_required)
+    page: Page = Depends(Page), extra: bool = False, user=Depends(auth_required)
 ):
-    data = (
-        await Picture.all()
-        .order_by("-id")
-        .limit(page.limit)
-        .offset(page.offset)
-        .values(
+    result = await pictures_index.search(
+        "",
+        limit=page.limit,
+        offset=page.offset,
+        attributes_to_retrieve=[
             "id",
             "url",
-        )
+            "favorite_count",
+            "like_count",
+        ],
     )
-    if favorite:
-        data = await add_favorite(data, user.id)
+    data = result.hits
+    if extra:
+        data = await add_extra(data, user.id)
     return data
 
 
@@ -60,26 +63,36 @@ async def favorite_picture(pk: int, user=Depends(auth_required)):
     _, created = await Favorite.get_or_create(user_id=user.pk, picture_id=pk)
     if not created:
         await Favorite.filter(user_id=user.pk, picture_id=pk).delete()
+    return {"favorite": created}
+
+
+@router.post("/{pk}/like")
+async def like_picture(pk: int, user=Depends(auth_required)):
+    _, created = await Like.get_or_create(user_id=user.pk, picture_id=pk)
+    if not created:
+        await Like.filter(user_id=user.pk, picture_id=pk).delete()
+    return {"like": created}
 
 
 @router.get("/hot")
 async def get_hot_pictures(
-    page: Page = Depends(Page), favorite: bool = False, user=Depends(auth_required)
+    page: Page = Depends(Page), extra: bool = False, user=Depends(auth_required)
 ):
     result = await pictures_index.search(
         "",
         limit=page.limit,
         offset=page.offset,
-        sort=["favorite_count:desc"],
-        attributes_to_retrieve=["id"],
+        sort=["like_count:desc"],
+        attributes_to_retrieve=[
+            "id",
+            "url",
+            "favorite_count",
+            "like_count",
+        ],
     )
-    ids = [hit["id"] for hit in result.hits]
-    data = await Picture.filter(id__in=ids).values(
-        "id",
-        "url",
-    )
-    if favorite:
-        data = await add_favorite(data, user.id)
+    data = result.hits
+    if extra:
+        data = await add_extra(data, user.id)
     return data
 
 
@@ -87,20 +100,22 @@ async def get_hot_pictures(
 async def search_pictures(
     keyword: str = Query(..., max_length=10, min_length=1),
     page: Page = Depends(Page),
-    favorite: bool = False,
+    extra: bool = False,
     user=Depends(auth_required),
 ):
     result = await pictures_index.search(
         keyword,
         limit=page.limit,
         offset=page.offset,
-        sort=["favorite_count:desc"],
+        sort=["like_count:desc"],
+        attributes_to_retrieve=[
+            "id",
+            "url",
+            "favorite_count",
+            "like_count",
+        ],
     )
-    ids = [hit["id"] for hit in result.hits]
-    data = await Picture.filter(id__in=ids).values(
-        "id",
-        "url",
-    )
-    if favorite:
-        data = await add_favorite(data, user.id)
+    data = result.hits
+    if extra:
+        data = await add_extra(data, user.id)
     return data

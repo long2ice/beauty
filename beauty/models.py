@@ -24,7 +24,7 @@ class Picture(Model):
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
     favorites: fields.ReverseRelation["Favorite"]
-    ratings: fields.ReverseRelation["Rating"]
+    likes: fields.ReverseRelation["Like"]
 
 
 class Favorite(Model):
@@ -46,13 +46,10 @@ class Collection(Model):
         unique_together = [("title", "origin")]
 
 
-class Rating(Model):
+class Like(Model):
     user: fields.ForeignKeyRelation[User] = fields.ForeignKeyField("models.User")
-    rating = fields.IntField()
     picture: fields.ForeignKeyRelation[Picture] = fields.ForeignKeyField("models.Picture")
-    comment = fields.CharField(max_length=500, null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
-    updated_at = fields.DatetimeField(auto_now=True)
 
     class Meta:
         unique_together = [("user", "picture")]

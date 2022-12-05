@@ -1,5 +1,4 @@
 from meilisearch_python_async import Client
-from tortoise.functions import Avg
 
 from beauty.models import Collection, Picture
 from beauty.settings import settings
@@ -11,7 +10,7 @@ collections_index = client.index("beauty-collections")
 
 async def init():
     await pictures_index.update_sortable_attributes(
-        sortable_attributes=["favorite_count", "avg_rating"]
+        sortable_attributes=["favorite_count", "like_count"]
     )
 
 
@@ -33,10 +32,7 @@ async def add_pictures(*pictures: Picture):
             "id": p.pk,
             "description": p.description,
             "favorite_count": await p.favorites.all().count(),
-            "avg_rating": (
-                await p.ratings.all().annotate(avg_rating=Avg("rating")).values("avg_rating")
-            )[0]["avg_rating"]
-            or 0,
+            "like_count": await p.likes.all().count(),
         }
         for p in pictures
     ]

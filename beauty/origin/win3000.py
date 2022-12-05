@@ -2,6 +2,7 @@ import asyncio
 import itertools
 
 import requests_html
+from bs4 import BeautifulSoup
 from tortoise.exceptions import IntegrityError
 
 from beauty.enums import Origin
@@ -54,10 +55,12 @@ class Win3000(OriginBase):
 
     async def parse(self, res: requests_html.HTMLResponse) -> list[Picture]:
         tasks = []
-        for li in res.html.find(".mobilesize li"):
-            a = li.find("a", first=True)
+        bs = BeautifulSoup(res.html.html, "lxml")
+        mobilesize = bs.find(class_="mobilesize")
+        for li in mobilesize.find_all("li"):
+            a = li.find("a")
             href = a.attrs["href"]
-            title = li.find("h3", first=True).text
+            title = li.find("h3").text
             tasks.append(self._get_pics(href, title))
         ret = await asyncio.gather(*tasks)
         return list(itertools.chain(*ret))
