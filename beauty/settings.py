@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     WECHAT_APP_SECRET: str
     CACHE_EXPIRE_SECONDS: int = 60
     SITE_URL = "https://beauty.long2ice.com"
+    USER_AGENT = (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
+    )
 
     class Config:
         env_file = ".env"
