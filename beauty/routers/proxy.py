@@ -18,7 +18,9 @@ async def proxy_netbian(full_path: str):
     if cookies:
         cookies = json.loads(cookies)
     async with httpx.AsyncClient() as client:
-        res = await client.get(url, cookies=cookies)
+        res = await client.get(
+            url, cookies=[(cookie["name"], cookie["value"]) for cookie in cookies]
+        )
         headers = res.headers
         set_cookie = headers.get("set-cookie")
         if set_cookie:
