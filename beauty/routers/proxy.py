@@ -17,6 +17,8 @@ async def proxy_netbian(full_path: str):
     cookies = await redis.hget(Key.cookies, Origin.netbian.value)  # type: ignore
     if cookies:
         cookies = json.loads(cookies)
+    else:
+        cookies = []
     async with httpx.AsyncClient() as client:
         res = await client.get(
             url, cookies=[(cookie["name"], cookie["value"]) for cookie in cookies]
