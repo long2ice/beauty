@@ -33,7 +33,7 @@ async def handle_search_results(results: SearchResults, user_id: int, extra: boo
 
 @router.get("", response_model=PictureResponse)
 async def get_pictures(
-    page: Page = Depends(Page), extra: bool = False, user=Depends(auth_required)
+    page: Page = Depends(Page), extra: bool = False, user_id=Depends(auth_required)
 ):
     results = await pictures_index.search(
         "",
@@ -43,9 +43,10 @@ async def get_pictures(
             "id",
             "favorite_count",
             "like_count",
+            "description",
         ],
     )
-    return await handle_search_results(results, user.id, extra)
+    return await handle_search_results(results, user_id, extra)
 
 
 @router.get("/keyword")
@@ -62,24 +63,24 @@ async def get_picture_tags():
 
 
 @router.post("/{pk}/favorite")
-async def favorite_picture(pk: int, user=Depends(auth_required)):
-    _, created = await Favorite.get_or_create(user_id=user.pk, picture_id=pk)
+async def favorite_picture(pk: int, user_id=Depends(auth_required)):
+    _, created = await Favorite.get_or_create(user_id=user_id, picture_id=pk)
     if not created:
-        await Favorite.filter(user_id=user.pk, picture_id=pk).delete()
+        await Favorite.filter(user_id=user_id, picture_id=pk).delete()
     return {"favorite": created}
 
 
 @router.post("/{pk}/like")
-async def like_picture(pk: int, user=Depends(auth_required)):
-    _, created = await Like.get_or_create(user_id=user.pk, picture_id=pk)
+async def like_picture(pk: int, user_id=Depends(auth_required)):
+    _, created = await Like.get_or_create(user_id=user_id, picture_id=pk)
     if not created:
-        await Like.filter(user_id=user.pk, picture_id=pk).delete()
+        await Like.filter(user_id=user_id, picture_id=pk).delete()
     return {"like": created}
 
 
 @router.get("/hot", response_model=PictureResponse)
 async def get_hot_pictures(
-    page: Page = Depends(Page), extra: bool = False, user=Depends(auth_required)
+    page: Page = Depends(Page), extra: bool = False, user_id=Depends(auth_required)
 ):
     results = await pictures_index.search(
         "",
@@ -90,9 +91,10 @@ async def get_hot_pictures(
             "id",
             "favorite_count",
             "like_count",
+            "description",
         ],
     )
-    return await handle_search_results(results, user.id, extra)
+    return await handle_search_results(results, user_id, extra)
 
 
 @router.get(
@@ -104,7 +106,7 @@ async def search_pictures(
     keyword: str = Query(..., max_length=10, min_length=1),
     page: Page = Depends(Page),
     extra: bool = False,
-    user=Depends(auth_required),
+    user_id=Depends(auth_required),
 ):
     results = await pictures_index.search(
         keyword,
@@ -115,6 +117,34 @@ async def search_pictures(
             "id",
             "favorite_count",
             "like_count",
+            "description",
         ],
     )
-    return await handle_search_results(results, user.id, extra)
+    return await handle_search_results(results, user_id, extra)
+
+
+@router.get("/favorite", response_model=PictureResponse)
+async def get_favorite_pictures(
+    user_id=Depends(auth_required), page: Page = Depends(Page), extra: bool = False
+):
+    data = (
+        await Favorite.filter(user_id=user_id)
+        .select_related("picture")
+        .limit(page.limit)
+        .offset(page.offset)
+        .values(
+            id="picture__id",
+            url="picture__url",
+            description="picture__description",
+        )
+    )
+    if extra:
+        for picture in data:
+            picture["favorite"] = True
+            picture["like"] = await Like.filter(user_id=user_id, picture_id=picture["id"]).exists()
+            picture["favorite_count"] = await Favorite.filter(picture_id=picture["id"]).count()
+            picture["like_count"] = await Like.filter(picture_id=picture["id"]).count()
+    return {
+        "total": await Favorite.filter(user_id=user_id).count(),
+        "data": data,
+    }

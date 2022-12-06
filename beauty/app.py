@@ -5,6 +5,7 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from rearq.server.app import app as rearq_server
 from starlette.middleware.cors import CORSMiddleware
+from starlette.staticfiles import StaticFiles
 from tortoise.contrib.fastapi import register_tortoise
 from tortoise.exceptions import DoesNotExist
 
@@ -48,6 +49,7 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, exception_handler)
 app.mount("/rearq", rearq_server)
 rearq_server.set_rearq(rearq)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.on_event("startup")

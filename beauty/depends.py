@@ -85,7 +85,11 @@ async def auth_required(token: HTTPAuthorizationCredentials = Depends(auth_schem
     user_id = data.get("user_id")
     if not user_id:
         raise invalid_token
+    return user_id
+
+
+async def get_current_user(user_id=Depends(auth_required)):
     user = await User.get_or_none(pk=user_id)
     if not user:
-        raise invalid_token
+        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="User not found")
     return user

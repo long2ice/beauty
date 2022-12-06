@@ -35,6 +35,9 @@ ruff = "*"
 types-cachetools = "*"
 types-redis = "*"
 
+[tool.poetry.group.dev.dependencies]
+types-aiofiles = "*"
+
 [tool.aerich]
 tortoise_orm = "beauty.settings.TORTOISE_ORM"
 location = "./migrations"

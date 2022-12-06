@@ -4,7 +4,14 @@ from beauty.settings import settings
 
 
 class User(BaseModel):
-    pass
+    avatar: str
+    nickname: str
+
+    @root_validator(pre=True)
+    def validate_avatar(cls, v):
+        if not v["avatar"].startswith("http"):
+            v["avatar"] = f"{settings.SITE_URL}/static/avatar/{v['avatar']}"
+        return v
 
 
 class LoginResponse(BaseModel):
@@ -19,6 +26,7 @@ class Picture(BaseModel):
     like_count: int
     like: bool
     favorite: bool
+    description: str
 
     @root_validator(pre=True)
     def validate(cls, values):
@@ -32,4 +40,16 @@ class Picture(BaseModel):
 
 class PictureResponse(BaseModel):
     data: list[Picture]
+    total: int
+
+
+class Collection(BaseModel):
+    id: int
+    title: str
+    description: str
+    url: str
+
+
+class CollectionResponse(BaseModel):
+    data: list[Collection]
     total: int

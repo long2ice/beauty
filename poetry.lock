@@ -1071,6 +1071,14 @@ slack = ["slack-sdk"]
 telegram = ["requests"]
 
 [[package]]
+name = "types-aiofiles"
+version = "22.1.0.4"
+description = "Typing stubs for aiofiles"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "types-cachetools"
 version = "5.2.1"
 description = "Typing stubs for cachetools"
@@ -1218,7 +1226,7 @@ python-versions = ">=3.4"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "f82af8cad1e1ca69fa80a9bce0bdc895779ad6cfba29c43f6dc828cd1ceaddad"
+content-hash = "d63c234b6e29d24959d414d3457181ac9c5ad7fc29bb4c5890c14f0768364eaa"
 
 [metadata.files]
 aerich = [
@@ -2055,6 +2063,10 @@ tortoise-orm = [
 tqdm = [
     {file = "tqdm-4.64.1-py2.py3-none-any.whl", hash = "sha256:6fee160d6ffcd1b1c68c65f14c829c22832bc401726335ce92c52d395944a6a1"},
     {file = "tqdm-4.64.1.tar.gz", hash = "sha256:5f4f682a004951c1b450bc753c710e9280c5746ce6ffedee253ddbcbf54cf1e4"},
+]
+types-aiofiles = [
+    {file = "types-aiofiles-22.1.0.4.tar.gz", hash = "sha256:54465417fdfafc723e6f0fca66de5498866f1cf2595b72c9da35c96d1c3e9fce"},
+    {file = "types_aiofiles-22.1.0.4-py3-none-any.whl", hash = "sha256:3c3d389ceec04c78bd33d13304332dcc46856a418d7d4ebf95e398f1efa3a3b7"},
 ]
 types-cachetools = [
     {file = "types-cachetools-5.2.1.tar.gz", hash = "sha256:069cfc825697cd51445c1feabbe4edc1fae2b2315870e7a9a179a7c4a5851bee"},
