@@ -110,7 +110,7 @@ async def sync_collections():
     return total
 
 
-@rearq.task(cron="*/20 * * *")
+@rearq.task(cron="*/20 * * * *")
 async def refresh_cookies():
     async with async_playwright() as p:
         browser = await p.chromium.launch()
