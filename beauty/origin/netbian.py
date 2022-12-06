@@ -1,5 +1,4 @@
 import asyncio
-import json
 
 import requests_html
 from fake_useragent import UserAgent
@@ -8,7 +7,6 @@ from playwright.async_api import async_playwright
 from beauty.enums import Origin
 from beauty.models import Picture
 from beauty.origin import OriginBase
-from beauty.redis import Key, redis
 from beauty.settings import settings
 
 
@@ -22,7 +20,8 @@ class NetBian(OriginBase):
         else:
             return f"{self.homepage}/shouji/meinv/index_{page}.html"
 
-    def _is_valid_cookies(self, cookies: list):
+    @classmethod
+    def is_valid_cookies(cls, cookies: list):
         for cookie in cookies:
             if cookie["name"] == "yjs_js_security_passport":
                 return True
@@ -42,17 +41,7 @@ class NetBian(OriginBase):
             await asyncio.sleep(5)
             content = await page.content()
             cookies = await context.cookies()
-            if self._is_valid_cookies(cookies):
-                await redis.hset(  # type: ignore
-                    Key.cookies,
-                    self.origin.value,
-                    json.dumps(
-                        {
-                            "user_agent": user_agent,
-                            "cookies": cookies,
-                        }
-                    ),
-                )
+            if self.is_valid_cookies(cookies):
                 self.asession.headers.update({"User-Agent": user_agent})
                 for cookie in cookies:
                     self.asession.cookies.set(
