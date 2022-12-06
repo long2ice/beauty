@@ -48,9 +48,7 @@ async def get_origin_pictures(origin: str):
     try:
         async for pictures in obj.run():
             count += len(pictures)
-            await Picture.bulk_create(
-                pictures, update_fields=["description"], on_conflict=["url"]
-            )
+            await Picture.bulk_create(pictures, update_fields=["description"], on_conflict=["url"])
     finally:
         await obj.close()
 
@@ -71,11 +69,7 @@ async def sync_pictures():
     total = 0
     while True:
         pics = (
-            await Picture.all()
-            .order_by("id")
-            .limit(limit)
-            .offset(offset)
-            .only("id", "description")
+            await Picture.all().order_by("id").limit(limit).offset(offset).only("id", "description")
         )
         if not pics:
             break
@@ -103,21 +97,22 @@ async def sync_collections():
             break
         total += len(collections)
         await meili.add_collections(*collections)
-        logger.success(
-            f"Successfully save {len(collections)} collections, offset: {offset}"
-        )
+        logger.success(f"Successfully save {len(collections)} collections, offset: {offset}")
         offset += limit
     return total
 
 
 @rearq.task(cron="*/20 * * * *")
 async def refresh_cookies():
+    picture = await Picture.filter(origin=Origin.netbian).only("url").first()
+    if not picture:
+        return
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         user_agent = UserAgent().random
         context = await browser.new_context(user_agent=user_agent)
         page = await context.new_page()
-        await page.goto(NetBian.homepage)
+        await page.goto(picture.url)
         await page.reload()
         await asyncio.sleep(5)
         cookies = await context.cookies()
