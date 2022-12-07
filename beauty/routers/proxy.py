@@ -2,6 +2,7 @@ import json
 from io import BytesIO
 
 import httpx
+from fake_useragent import UserAgent
 from fastapi import APIRouter
 from starlette.responses import StreamingResponse
 
@@ -21,7 +22,7 @@ async def proxy_netbian(full_path: str):
         user_agent = result.get("user_agent")
     else:
         cookies = []
-        user_agent = None
+        user_agent = UserAgent().random
     httpx_cookies = httpx.Cookies()
     for cookie in cookies:
         httpx_cookies.set(cookie["name"], cookie["value"])

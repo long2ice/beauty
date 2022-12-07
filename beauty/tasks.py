@@ -82,7 +82,11 @@ async def sync_pictures():
     total = 0
     while True:
         pics = (
-            await Picture.all().order_by("id").limit(limit).offset(offset).only("id", "description")
+            await Picture.all()
+            .order_by("id")
+            .limit(limit)
+            .offset(offset)
+            .only("id", "description", "created_at")
         )
         if not pics:
             break

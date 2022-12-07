@@ -10,7 +10,17 @@ collections_index = client.index("beauty-collections")
 
 async def init():
     await pictures_index.update_sortable_attributes(
-        sortable_attributes=["favorite_count", "like_count"]
+        sortable_attributes=["id", "favorite_count", "like_count"]
+    )
+    await pictures_index.update_ranking_rules(
+        [
+            "sort",
+            "words",
+            "typo",
+            "proximity",
+            "attribute",
+            "exactness",
+        ]
     )
 
 

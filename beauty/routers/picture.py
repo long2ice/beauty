@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from meilisearch_python_async.models.search import SearchResults
 from pydantic import NonNegativeInt
 
+from beauty import meili
 from beauty.depends import auth_required, store_keyword
 from beauty.meili import pictures_index
 from beauty.models import Favorite, Like, Picture
@@ -15,19 +16,20 @@ router = APIRouter()
 
 
 async def handle_search_results(results: SearchResults, user_id: int, extra: bool):
-    results_map = {x.get("id"): x for x in results.hits}
-    pictures = await Picture.filter(pk__in=results_map.keys()).values("id", "url")
-
-    for picture in pictures:
-        picture.update(results_map.get(picture["id"]))  # type: ignore
+    data = results.hits
+    ids = [d["id"] for d in data]
+    pictures = await Picture.filter(pk__in=ids).values("id", "url")
+    pictures_map = {p["id"]: p for p in pictures}
+    for item in data:
+        item.update(pictures_map.get(item["id"]))  # type: ignore
         if extra:
-            picture["favorite"] = await Favorite.filter(
-                user_id=user_id, picture_id=picture["id"]
+            item["favorite"] = await Favorite.filter(
+                user_id=user_id, picture_id=item["id"]
             ).exists()
-            picture["like"] = await Like.filter(user_id=user_id, picture_id=picture["id"]).exists()
+            item["like"] = await Like.filter(user_id=user_id, picture_id=item["id"]).exists()
     return {
         "total": results.estimated_total_hits,
-        "data": pictures,
+        "data": data,
     }
 
 
@@ -36,9 +38,10 @@ async def get_pictures(
     page: Page = Depends(Page), extra: bool = False, user_id=Depends(auth_required)
 ):
     results = await pictures_index.search(
-        "",
-        limit=page.limit,
+        None,
         offset=page.offset,
+        limit=page.limit,
+        sort=["id:desc"],
         attributes_to_retrieve=[
             "id",
             "favorite_count",
@@ -71,6 +74,7 @@ async def favorite_picture(pk: int, user_id=Depends(auth_required)):
     _, created = await Favorite.get_or_create(user_id=user_id, picture_id=pk)
     if not created:
         await Favorite.filter(user_id=user_id, picture_id=pk).delete()
+    await meili.add_pictures(await Picture.get(pk=pk).only("id", "description", "created_at"))
     return {"favorite": created}
 
 
@@ -79,6 +83,7 @@ async def like_picture(pk: int, user_id=Depends(auth_required)):
     _, created = await Like.get_or_create(user_id=user_id, picture_id=pk)
     if not created:
         await Like.filter(user_id=user_id, picture_id=pk).delete()
+    await meili.add_pictures(await Picture.get(pk=pk).only("id", "description", "created_at"))
     return {"like": created}
 
 
