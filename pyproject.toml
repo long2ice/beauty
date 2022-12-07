@@ -24,6 +24,7 @@ wechatpy = "*"
 fastapi-cache2 = "^0.1.9"
 cryptography = "*"
 playwright = "*"
+jieba = "*"
 
 [tool.poetry.dev-dependencies]
 black = "*"

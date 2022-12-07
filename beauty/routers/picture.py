@@ -57,9 +57,13 @@ async def get_keywords(limit: NonNegativeInt = 10):
     return random.sample(data, min(len(data), limit))
 
 
-@router.get("/tag")
+@router.get("/tag", response_model=list[str])
 async def get_picture_tags():
-    return ["最新", "热门", "小姐姐"]
+    tags = await redis.zrevrange(Key.tags, 0, -1)
+    return [
+        "最新",
+        "热门",
+    ] + list(tags)
 
 
 @router.post("/{pk}/favorite")

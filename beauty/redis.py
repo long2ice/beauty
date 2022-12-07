@@ -10,3 +10,4 @@ redis = redis.from_url(settings.REDIS_URL, decode_responses=True)  # type:ignore
 class Key(str, Enum):
     keywords = "keywords"
     cookies = "cookies"
+    tags = "tags"

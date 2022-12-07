@@ -1,6 +1,7 @@
 import asyncio
 import json
 
+import jieba
 from fake_useragent import UserAgent
 from loguru import logger
 from playwright.async_api import async_playwright
@@ -60,6 +61,18 @@ async def get_origins():
     origins = utils.get_origins()
     for origin in origins.keys():
         await get_origin_pictures.delay(origin)
+
+
+@rearq.task(cron="0 0 * * *")
+async def get_tags():
+    pictures = await Picture.filter().only("description")
+    for picture in pictures:
+        result = jieba.cut(picture.description)
+        for word in result:
+            if len(word) > 1:
+                await redis.zincrby(Key.tags, 1, word)
+    total = await redis.zcard(Key.tags)
+    return await redis.zremrangebyrank(Key.tags, 0, total - 20)
 
 
 @rearq.task(cron="0 3 * * *")

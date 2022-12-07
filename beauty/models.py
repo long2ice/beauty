@@ -53,3 +53,9 @@ class Like(Model):
 
     class Meta:
         unique_together = [("user", "picture")]
+
+
+class Feedback(Model):
+    user: fields.ForeignKeyRelation[User] = fields.ForeignKeyField("models.User")
+    content = fields.TextField()
+    created_at = fields.DatetimeField(auto_now_add=True)
