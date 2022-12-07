@@ -39,3 +39,8 @@ async def update_user(
         user.nickname = body.nickname
         await user.save(update_fields=["nickname"])
     return user
+
+
+@router.get("", response_model=responses.User)
+async def get_user(user=Depends(get_current_user)):
+    return user

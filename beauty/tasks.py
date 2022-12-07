@@ -63,7 +63,7 @@ async def get_origins():
         await get_origin_pictures.delay(origin)
 
 
-@rearq.task(cron="0 0 * * *")
+@rearq.task(cron="0 1 * * *")
 async def get_tags():
     pictures = await Picture.filter().only("description")
     for picture in pictures:
