@@ -48,7 +48,7 @@ async def sign_required(
     else:
         try:
             data = await request.json()
-        except JSONDecodeError:
+        except (JSONDecodeError, UnicodeDecodeError):
             data = {}
     now = int(datetime.datetime.now().timestamp())
     if abs(now - x_timestamp) > 60 * 10:

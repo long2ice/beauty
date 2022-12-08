@@ -157,8 +157,12 @@ async def download_pictures(concurrency: int = 10):
     sem = asyncio.Semaphore(concurrency)
 
     pictures = await Picture.filter(url=None).only("id", "origin", "origin_url")
+    tasks = []
     for picture in pictures:
-        asyncio.ensure_future(
-            download_and_upload(sem, picture.pk, picture.origin, picture.origin_url)
+        tasks.append(
+            asyncio.ensure_future(
+                download_and_upload(sem, picture.pk, picture.origin, picture.origin_url)
+            )
         )
+    await asyncio.gather(*tasks)
     return len(pictures)
