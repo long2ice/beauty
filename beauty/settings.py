@@ -21,8 +21,9 @@ class Settings(BaseSettings):
     WECHAT_APP_SECRET: str
     CACHE_EXPIRE_SECONDS: int = 60
     MINIO_ENDPOINT: str
+    MINIO_URL: str
     MINIO_BUCKET_NAME: str = "beauty"
-    MINIO_SECURE: bool = True
+    MINIO_SECURE: bool = False
     MINIO_ACCESS_KEY: str
     MINIO_SECRET_KEY: str
 

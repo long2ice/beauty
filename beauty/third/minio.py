@@ -46,7 +46,7 @@ async def upload_file(object_name: str, content_type: str, data: BytesIO):
 
 
 def format_url(url: str):
-    return f"{'https://' if settings.MINIO_SECURE else 'http://'}{settings.MINIO_ENDPOINT}/{settings.MINIO_BUCKET_NAME}/{url}"
+    return f"{settings.MINIO_URL}/{settings.MINIO_BUCKET_NAME}/{url}"
 
 
 async def download_and_upload(sem: asyncio.Semaphore, pk: int, origin: Origin, url: str):
@@ -54,7 +54,7 @@ async def download_and_upload(sem: asyncio.Semaphore, pk: int, origin: Origin, u
         headers = {}
         httpx_cookies = None
         if origin == Origin.netbian:
-            cookies = await redis.hget(Key.cookies, origin.value)
+            cookies = await redis.hget(Key.cookies, origin.value)  # type: ignore
             if cookies:
                 cookies = json.loads(cookies)
                 user_agent = cookies.get("user_agent")
