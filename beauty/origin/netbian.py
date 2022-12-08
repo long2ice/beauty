@@ -70,7 +70,7 @@ class NetBian(OriginBase):
             pics.append(
                 Picture(
                     origin=Origin.netbian,
-                    url=src,
+                    origin_url=src,
                     description=alt,
                 )
             )

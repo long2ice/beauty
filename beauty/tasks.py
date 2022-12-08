@@ -9,12 +9,14 @@ from rearq import ReArq
 from rearq.constants import JOB_TIMEOUT_UNLIMITED
 from tortoise import Tortoise
 
-from beauty import meili, utils
+from beauty import utils
 from beauty.enums import Origin
 from beauty.models import Collection, Picture
 from beauty.origin.netbian import NetBian
-from beauty.redis import Key, redis
 from beauty.settings import settings
+from beauty.third import meili
+from beauty.third.minio import download_and_upload
+from beauty.third.redis import Key, redis
 
 rearq = ReArq(
     db_url=settings.DB_URL,
@@ -49,7 +51,9 @@ async def get_origin_pictures(origin: str):
     try:
         async for pictures in obj.run():
             count += len(pictures)
-            await Picture.bulk_create(pictures, update_fields=["description"], on_conflict=["url"])
+            await Picture.bulk_create(
+                pictures, update_fields=["description"], on_conflict=["origin_url"]
+            )
     finally:
         await obj.close()
 
@@ -121,7 +125,7 @@ async def sync_collections():
 
 @rearq.task(cron="*/20 * * * *")
 async def refresh_cookies():
-    picture = await Picture.filter(origin=Origin.netbian).only("url").first()
+    picture = await Picture.filter(origin=Origin.netbian).only("origin_url").first()
     if not picture:
         return
     async with async_playwright() as p:
@@ -129,7 +133,7 @@ async def refresh_cookies():
         user_agent = UserAgent().random
         context = await browser.new_context(user_agent=user_agent)
         page = await context.new_page()
-        await page.goto(picture.url)
+        await page.goto(picture.origin_url)
         await page.reload()
         await asyncio.sleep(5)
         cookies = await context.cookies()
@@ -145,3 +149,15 @@ async def refresh_cookies():
                 ),
             )
         return cookies
+
+
+@rearq.task(cron="0 * * * *", job_timeout=JOB_TIMEOUT_UNLIMITED, run_with_lock=True)
+async def download_pictures(concurrency: int = 10):
+    sem = asyncio.Semaphore(concurrency)
+
+    pictures = await Picture.filter(url=None).only("id", "origin", "origin_url")
+    for picture in pictures:
+        asyncio.ensure_future(
+            download_and_upload(sem, picture.pk, picture.origin, picture.origin_url)
+        )
+    return len(pictures)

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, root_validator
 
-from beauty.settings import settings
+from beauty.third.minio import format_url
 
 
 class User(BaseModel):
@@ -8,10 +8,11 @@ class User(BaseModel):
     nickname: str
 
     @root_validator(pre=True)
-    def validate_avatar(cls, v):
-        if not v["avatar"].startswith("http"):
-            v["avatar"] = f"{settings.SITE_URL}/static/avatar/{v['avatar']}"
-        return v
+    def validate_avatar(cls, values):
+        avatar = values.get("avatar")
+        if not avatar.startswith("http"):
+            values["avatar"] = format_url(avatar)
+        return values
 
 
 class LoginResponse(BaseModel):
@@ -31,10 +32,7 @@ class Picture(BaseModel):
     @root_validator(pre=True)
     def validate(cls, values):
         url = values.get("url")
-        if "netbian" in url:
-            values["url"] = url.replace(
-                "http://img.netbian.com", settings.SITE_URL + "/img.netbian.com"
-            )
+        values["url"] = format_url(url)
         return values
 
 
@@ -48,6 +46,12 @@ class Collection(BaseModel):
     title: str
     description: str
     url: str
+
+    @root_validator(pre=True)
+    def validate(cls, values):
+        url = values.get("url")
+        values["url"] = format_url(url)
+        return values
 
 
 class CollectionResponse(BaseModel):

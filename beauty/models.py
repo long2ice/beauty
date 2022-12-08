@@ -15,7 +15,8 @@ class User(Model):
 
 
 class Picture(Model):
-    url = fields.CharField(max_length=500, unique=True)
+    url = fields.CharField(max_length=500, unique=True, null=True)
+    origin_url = fields.CharField(max_length=500, unique=True)
     origin = fields.CharEnumField(Origin)
     description = fields.TextField(null=True)
     collection: fields.ForeignKeyRelation["Collection"] = fields.ForeignKeyField(

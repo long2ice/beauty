@@ -5,11 +5,9 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from rearq.server.app import app as rearq_server
 from starlette.middleware.cors import CORSMiddleware
-from starlette.staticfiles import StaticFiles
 from tortoise.contrib.fastapi import register_tortoise
 from tortoise.exceptions import DoesNotExist
 
-from beauty import meili
 from beauty.exceptions import (
     custom_http_exception_handler,
     exception_handler,
@@ -17,10 +15,11 @@ from beauty.exceptions import (
     validation_exception_handler,
 )
 from beauty.logging import init_logging
-from beauty.redis import redis
 from beauty.routers import router
 from beauty.settings import TORTOISE_ORM, settings
 from beauty.tasks import rearq
+from beauty.third import meili
+from beauty.third.redis import redis
 
 if settings.DEBUG:
     app = FastAPI(title="beauty", debug=settings.DEBUG)
@@ -49,7 +48,6 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, exception_handler)
 app.mount("/rearq", rearq_server)
 rearq_server.set_rearq(rearq)
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.on_event("startup")

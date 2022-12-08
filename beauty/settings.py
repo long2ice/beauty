@@ -20,7 +20,11 @@ class Settings(BaseSettings):
     WECHAT_APP_ID: str
     WECHAT_APP_SECRET: str
     CACHE_EXPIRE_SECONDS: int = 60
-    SITE_URL = "https://beauty.long2ice.com"
+    MINIO_ENDPOINT: str
+    MINIO_BUCKET_NAME: str = "beauty"
+    MINIO_SECURE: bool = True
+    MINIO_ACCESS_KEY: str
+    MINIO_SECRET_KEY: str
 
     class Config:
         env_file = ".env"

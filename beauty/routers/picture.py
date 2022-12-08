@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends, Query
 from meilisearch_python_async.models.search import SearchResults
 from pydantic import NonNegativeInt
 
-from beauty import meili
 from beauty.depends import auth_required, store_keyword
-from beauty.meili import pictures_index
 from beauty.models import Favorite, Like, Picture
-from beauty.redis import Key, redis
 from beauty.responses import PictureResponse
 from beauty.schemas import Page
+from beauty.third import meili
+from beauty.third.meili import pictures_index
+from beauty.third.redis import Key, redis
 
 router = APIRouter()
 

@@ -538,6 +538,18 @@ pydantic = ">=1.8,<2.0"
 PyJWT = ">=2.3.0,<3.0.0"
 
 [[package]]
+name = "minio"
+version = "7.1.12"
+description = "MinIO Python SDK for Amazon S3 Compatible Cloud Storage"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+certifi = "*"
+urllib3 = "*"
+
+[[package]]
 name = "mypy"
 version = "0.991"
 description = "Optional static typing for Python"
@@ -1234,7 +1246,7 @@ python-versions = ">=3.4"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "085a640a7284f3a7503c6d4be1137899e500796f2ad2a707f742f9e43130fb95"
+content-hash = "a7ec7c38e95db4bd04a09510ec00c6dccbab406c4d5b9904c489345016e7577d"
 
 [metadata.files]
 aerich = [
@@ -1728,6 +1740,10 @@ markupsafe = [
 meilisearch-python-async = [
     {file = "meilisearch-python-async-0.26.0.tar.gz", hash = "sha256:6463f3b69a04adfbd85c7a661e0050b14d44b3fd1310404db7529916abb38cb4"},
     {file = "meilisearch_python_async-0.26.0-py3-none-any.whl", hash = "sha256:434b3deaf95382fe7e35bab019c4617650c0e37ba45a0ff540e367921ea2e7b9"},
+]
+minio = [
+    {file = "minio-7.1.12-py3-none-any.whl", hash = "sha256:c8ab8646f93d47b9aefbf4db76aaba5ac54c87454b922a3d6c1423aed050aad5"},
+    {file = "minio-7.1.12.tar.gz", hash = "sha256:63111fedf67e07c5a4c8948b3a4e5ecbb372b522ea562bfa4d484194ec6a2b99"},
 ]
 mypy = [
     {file = "mypy-0.991-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:7d17e0a9707d0772f4a7b878f04b4fd11f6f5bcb9b3813975a9b13c9332153ab"},

@@ -46,7 +46,7 @@ class Win3000(OriginBase):
             pics.append(
                 Picture(
                     origin=self.origin,
-                    url=url,
+                    origin_url=url,
                     description=works_tag,
                     collection=collection,
                 )

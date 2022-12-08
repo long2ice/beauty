@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, Query
 
 from beauty.depends import auth_required
-from beauty.meili import collections_index
 from beauty.models import Favorite, Like, Picture
 from beauty.responses import CollectionResponse
 from beauty.schemas import Page
+from beauty.third.meili import collections_index
 
 router = APIRouter()
 

@@ -13,8 +13,8 @@ from starlette.requests import Request
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from beauty.models import User
-from beauty.redis import Key, redis
 from beauty.settings import JWT_ALGORITHM, settings
+from beauty.third.redis import Key, redis
 
 nonce_cache: TTLCache = TTLCache(maxsize=3600, ttl=int(datetime.timedelta(hours=1).total_seconds()))
 

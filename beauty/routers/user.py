@@ -1,13 +1,13 @@
 import hashlib
-import os.path
+from io import BytesIO
 from typing import Optional
 
-import aiofiles
 from fastapi import APIRouter, Depends, UploadFile
 from pydantic import BaseModel
 
 from beauty import constants, responses
 from beauty.depends import get_current_user
+from beauty.third import minio
 
 router = APIRouter()
 
@@ -22,9 +22,8 @@ async def update_avatar(
     user=Depends(get_current_user),
 ):
     filename = hashlib.md5(user.openid.encode()).hexdigest()
-    filename = f'{filename}.{avatar.filename.split(".")[-1]}'
-    async with aiofiles.open(os.path.join(constants.AVATAR_DIR, filename), "wb") as f:
-        await f.write(await avatar.read())
+    filename = f'{constants.AVATAR}/{filename}.{avatar.filename.split(".")[-1]}'
+    await minio.upload_file(filename, avatar.content_type, BytesIO(await avatar.read()))
     user.avatar = filename
     await user.save(update_fields=["avatar"])
     return user

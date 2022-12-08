@@ -47,3 +47,7 @@ async def add_pictures(*pictures: Picture):
         for p in pictures
     ]
     return await pictures_index.add_documents(data)
+
+
+async def delete_pictures(*pk: int):
+    return await pictures_index.delete_documents([str(p) for p in pk])

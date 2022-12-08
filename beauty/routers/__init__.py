@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from beauty.depends import sign_required
-from beauty.routers import auth, collection, feedback, picture, proxy, user
+from beauty.routers import auth, collection, feedback, picture, user
 
 router = APIRouter()
 
@@ -13,5 +13,4 @@ signed_router.include_router(auth.router, prefix="/auth", tags=["Auth"])
 signed_router.include_router(user.router, prefix="/user", tags=["User"])
 signed_router.include_router(feedback.router, prefix="/feedback", tags=["Feedback"])
 
-router.include_router(proxy.router, prefix="", tags=["Proxy"])
 router.include_router(signed_router)
