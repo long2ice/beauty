@@ -45,17 +45,18 @@ async def shutdown():
 
 @rearq.task(job_timeout=JOB_TIMEOUT_UNLIMITED)
 async def get_origin_pictures(origin: str):
-    cls = utils.get_origin(Origin(origin))
-    obj = cls()
+    origins = utils.get_origin(Origin(origin))
     count = 0
-    try:
-        async for pictures in obj.run():
-            count += len(pictures)
-            await Picture.bulk_create(
-                pictures, update_fields=["description"], on_conflict=["origin_url"]
-            )
-    finally:
-        await obj.close()
+    for cls in origins:
+        obj = cls()
+        try:
+            async for pictures in obj.run():
+                count += len(pictures)
+                await Picture.bulk_create(
+                    pictures, update_fields=["description"], on_conflict=["origin_url"]
+                )
+        finally:
+            await obj.close()
 
     return count
 

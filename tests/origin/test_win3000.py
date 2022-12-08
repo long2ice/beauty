@@ -1,11 +1,11 @@
 import pytest
 
-from beauty.origin.win3000 import Win3000
+from beauty.origin.win3000 import Win3000MN
 
 
 @pytest.fixture
 async def win3000():
-    win3000 = Win3000()
+    win3000 = Win3000MN()
     yield win3000
     await win3000.close()
 

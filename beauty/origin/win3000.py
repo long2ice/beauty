@@ -10,7 +10,7 @@ from beauty.models import Collection, Picture
 from beauty.origin import OriginBase
 
 
-class Win3000(OriginBase):
+class Win3000MN(OriginBase):
     homepage = "https://www.win3000.com"
     origin = Origin.win3000
 
@@ -64,3 +64,8 @@ class Win3000(OriginBase):
             tasks.append(self._get_pics(href, title))
         ret = await asyncio.gather(*tasks)
         return list(itertools.chain(*ret))
+
+
+class Win3000FJ(Win3000MN):
+    def get_page_url(self, page: int) -> str:
+        return f"{self.homepage}/mbizhi/fj/p{page}/"

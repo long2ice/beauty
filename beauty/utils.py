@@ -15,14 +15,14 @@ def _discover_origins():
         mod = importlib.import_module(f"{origin.__name__}.{m.name}")
         for _, member in inspect.getmembers(mod, inspect.isclass):
             if issubclass(member, OriginBase) and member is not OriginBase:
-                ret[member.origin] = member
+                ret.setdefault(member.origin, []).append(member)
     return ret
 
 
 _origins = _discover_origins()
 
 
-def get_origin(name: Origin) -> Type[OriginBase]:
+def get_origin(name: Origin) -> list[Type[OriginBase]]:
     return _origins[name]
 
 
