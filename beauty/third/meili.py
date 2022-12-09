@@ -22,6 +22,17 @@ async def init():
             "exactness",
         ]
     )
+    await collections_index.update_sortable_attributes(sortable_attributes=["id"])
+    await collections_index.update_ranking_rules(
+        [
+            "sort",
+            "words",
+            "typo",
+            "proximity",
+            "attribute",
+            "exactness",
+        ]
+    )
 
 
 async def add_collections(*collections: Collection):
@@ -51,3 +62,7 @@ async def add_pictures(*pictures: Picture):
 
 async def delete_pictures(*pk: int):
     return await pictures_index.delete_documents([str(p) for p in pk])
+
+
+async def delete_collections(*pk: int):
+    return await collections_index.delete_documents([str(p) for p in pk])

@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, Query
 
 from beauty.depends import auth_required
-from beauty.models import Favorite, Like, Picture
+from beauty.models import Collection, Favorite, Like, Picture
 from beauty.responses import CollectionResponse
 from beauty.schemas import Page
+from beauty.third import meili
 from beauty.third.meili import collections_index
 
 router = APIRouter()
@@ -15,12 +16,16 @@ async def search_collections(keyword: str = Query(..., max_length=10), page: Pag
         keyword,
         limit=page.limit,
         offset=page.offset,
+        sort=["id:desc"],
     )
     data = result.hits
     for collection in data:
-        collection["url"] = (  # type: ignore
-            await Picture.filter(collection_id=collection["id"]).only("url").first()
-        ).url
+        picture = await Picture.filter(collection_id=collection["id"]).only("url").first()
+        if not picture:
+            await Collection.filter(id=collection["id"]).delete()
+            await meili.delete_collections(collection["id"])
+            continue
+        collection["url"] = picture.url
     return {
         "total": result.estimated_total_hits,
         "data": data,

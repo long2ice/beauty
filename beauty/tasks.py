@@ -1,21 +1,22 @@
 import asyncio
+import hashlib
 import json
+from io import BytesIO
 
+import httpx
 import jieba
-from fake_useragent import UserAgent
 from loguru import logger
-from playwright.async_api import async_playwright
 from rearq import ReArq
 from rearq.constants import JOB_TIMEOUT_UNLIMITED
 from tortoise import Tortoise
 
-from beauty import utils
+from beauty import constants, utils
 from beauty.enums import Origin
 from beauty.models import Collection, Picture
 from beauty.origin.netbian import NetBian
 from beauty.settings import settings
 from beauty.third import meili
-from beauty.third.minio import download_and_upload
+from beauty.third.minio import upload_file
 from beauty.third.redis import Key, redis
 
 rearq = ReArq(
@@ -124,32 +125,43 @@ async def sync_collections():
     return total
 
 
-@rearq.task(cron="*/20 * * * *")
-async def refresh_cookies():
-    picture = await Picture.filter(origin=Origin.netbian).only("origin_url").first()
-    if not picture:
-        return
-    async with async_playwright() as p:
-        browser = await p.chromium.launch()
-        user_agent = UserAgent().random
-        context = await browser.new_context(user_agent=user_agent)
-        page = await context.new_page()
-        await page.goto(picture.origin_url)
-        await page.reload()
-        await asyncio.sleep(5)
-        cookies = await context.cookies()
-        if NetBian.is_valid_cookies(cookies):
-            await redis.hset(
-                Key.cookies,
-                NetBian.origin.value,
-                json.dumps(
-                    {
-                        "user_agent": user_agent,
-                        "cookies": cookies,
-                    }
-                ),
-            )
-        return cookies
+async def download_and_upload(sem: asyncio.Semaphore, pk: int, origin: Origin, url: str):
+    async with sem:
+        headers = {}
+        httpx_cookies = None
+        if origin == Origin.netbian:
+            cookies = await redis.hget(Key.cookies, origin.value)  # type: ignore
+            if cookies:
+                cookies = json.loads(cookies)
+                user_agent = cookies.get("user_agent")
+                cookies = cookies.get("cookies")
+                headers["User-Agent"] = user_agent
+                httpx_cookies = httpx.Cookies()
+                for cookie in cookies:
+                    httpx_cookies.set(cookie["name"], cookie["value"])
+        async with httpx.AsyncClient(headers=headers, cookies=httpx_cookies, timeout=30) as http:
+            try:
+                resp = await http.get(url)
+            except Exception as e:
+                logger.error(f"download {url} error: {e}")
+                return
+            if resp.status_code == 200:
+                objectname = (
+                    constants.PICTURES
+                    + "/"
+                    + (hashlib.md5(url.encode()).hexdigest() + "." + url.split(".")[-1])
+                )
+                content_type = resp.headers.get("Content-Type")
+                await upload_file(objectname, content_type, BytesIO(resp.content))
+                await Picture.filter(id=pk).update(url=objectname)
+                return objectname
+            elif resp.status_code == 404:
+                await Picture.filter(id=pk).delete()
+                await meili.delete_pictures(pk)
+            elif resp.status_code == 503 and origin == Origin.netbian:
+                await NetBian.refresh_cookies()
+            else:
+                logger.error(f"Download picture failed, url: {url}")
 
 
 @rearq.task(cron="0 * * * *", job_timeout=JOB_TIMEOUT_UNLIMITED, run_with_lock=True)
