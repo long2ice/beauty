@@ -1,6 +1,6 @@
-from pydantic import BaseModel, NonNegativeInt, conint
+from pydantic import BaseModel, NonNegativeInt
 
 
 class Page(BaseModel):
-    limit: conint(le=20) = 10  # type: ignore
+    limit: NonNegativeInt = 1000
     offset: NonNegativeInt = 0
