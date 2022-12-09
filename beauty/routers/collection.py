@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, Query
 from beauty.depends import auth_required
 from beauty.models import Collection, Favorite, Like, Picture
 from beauty.responses import CollectionResponse
+from beauty.responses import Picture as PictureModel
 from beauty.schemas import Page
 from beauty.third import meili
 from beauty.third.meili import collections_index
@@ -32,7 +33,7 @@ async def search_collections(keyword: str = Query(..., max_length=10), page: Pag
     }
 
 
-@router.get("/{pk}/picture")
+@router.get("/{pk}/picture", response_model=list[PictureModel])
 async def get_collection_pictures(pk: int, user_id=Depends(auth_required)):
     data = await Picture.filter(collection_id=pk).values("id", "url", "description")
     for picture in data:
