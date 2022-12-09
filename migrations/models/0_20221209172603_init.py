@@ -12,7 +12,8 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
 ) CHARACTER SET utf8mb4;
 CREATE TABLE IF NOT EXISTS `picture` (
     `id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    `url` VARCHAR(500) NOT NULL UNIQUE,
+    `url` VARCHAR(500)  UNIQUE,
+    `origin_url` VARCHAR(500) NOT NULL UNIQUE,
     `origin` VARCHAR(15) NOT NULL  COMMENT 'netbian: www.netbian.com\nwin3000: www.win3000.com',
     `description` LONGTEXT,
     `created_at` DATETIME(6) NOT NULL  DEFAULT CURRENT_TIMESTAMP(6),
@@ -37,17 +38,21 @@ CREATE TABLE IF NOT EXISTS `favorite` (
     CONSTRAINT `fk_favorite_picture_d14e685c` FOREIGN KEY (`picture_id`) REFERENCES `picture` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_favorite_user_babde07c` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4;
-CREATE TABLE IF NOT EXISTS `rating` (
+CREATE TABLE IF NOT EXISTS `feedback` (
     `id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    `rating` INT NOT NULL,
-    `comment` VARCHAR(500),
+    `content` LONGTEXT NOT NULL,
     `created_at` DATETIME(6) NOT NULL  DEFAULT CURRENT_TIMESTAMP(6),
-    `updated_at` DATETIME(6) NOT NULL  DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    `user_id` INT NOT NULL,
+    CONSTRAINT `fk_feedback_user_3669089f` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `like` (
+    `id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    `created_at` DATETIME(6) NOT NULL  DEFAULT CURRENT_TIMESTAMP(6),
     `picture_id` INT NOT NULL,
     `user_id` INT NOT NULL,
-    UNIQUE KEY `uid_rating_user_id_590db7` (`user_id`, `picture_id`),
-    CONSTRAINT `fk_rating_picture_980b5953` FOREIGN KEY (`picture_id`) REFERENCES `picture` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_rating_user_4100fc24` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+    UNIQUE KEY `uid_like_user_id_b96668` (`user_id`, `picture_id`),
+    CONSTRAINT `fk_like_picture_6e94692b` FOREIGN KEY (`picture_id`) REFERENCES `picture` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_like_user_e8643edc` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4;
 CREATE TABLE IF NOT EXISTS `aerich` (
     `id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
