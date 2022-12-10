@@ -78,7 +78,9 @@ async def favorite_picture(pk: int, user_id=Depends(auth_required)):
     _, created = await Favorite.get_or_create(user_id=user_id, picture_id=pk)
     if not created:
         await Favorite.filter(user_id=user_id, picture_id=pk).delete()
-    await meili.add_pictures(await Picture.get(pk=pk).only("id", "description", "created_at"))
+    await meili.add_pictures(
+        await Picture.get(pk=pk).only("id", "description", "category", "created_at")
+    )
     return {"favorite": created}
 
 
@@ -87,7 +89,9 @@ async def like_picture(pk: int, user_id=Depends(auth_required)):
     _, created = await Like.get_or_create(user_id=user_id, picture_id=pk)
     if not created:
         await Like.filter(user_id=user_id, picture_id=pk).delete()
-    await meili.add_pictures(await Picture.get(pk=pk).only("id", "description", "created_at"))
+    await meili.add_pictures(
+        await Picture.get(pk=pk).only("id", "description", "category", "created_at")
+    )
     return {"like": created}
 
 

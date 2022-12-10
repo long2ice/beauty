@@ -75,13 +75,9 @@ async def get_origins():
 @rearq.task(cron="0 1 * * *")
 async def get_tags():
     if settings.is_auditing:
-        pictures = await Picture.filter(~Q(category=PictureCategory.beauty)).only(
-            "description"
-        )
+        pictures = await Picture.filter(~Q(category=PictureCategory.beauty)).only("description")
     else:
-        pictures = await Picture.filter(category=PictureCategory.beauty).only(
-            "description"
-        )
+        pictures = await Picture.filter(category=PictureCategory.beauty).only("description")
     for picture in pictures:
         result = jieba.cut(picture.description)
         for word in result:
@@ -136,16 +132,12 @@ async def sync_collections():
             break
         total += len(collections)
         await meili.add_collections(*collections)
-        logger.success(
-            f"Successfully save {len(collections)} collections, offset: {offset}"
-        )
+        logger.success(f"Successfully save {len(collections)} collections, offset: {offset}")
         offset += limit
     return total
 
 
-async def download_and_upload(
-    sem: asyncio.Semaphore, pk: int, origin: Origin, url: str
-):
+async def download_and_upload(sem: asyncio.Semaphore, pk: int, origin: Origin, url: str):
     async with sem:
         headers = {}
         httpx_cookies = None
@@ -159,9 +151,7 @@ async def download_and_upload(
                 httpx_cookies = httpx.Cookies()
                 for cookie in cookies:
                     httpx_cookies.set(cookie["name"], cookie["value"])
-        async with httpx.AsyncClient(
-            headers=headers, cookies=httpx_cookies, timeout=30
-        ) as http:
+        async with httpx.AsyncClient(headers=headers, cookies=httpx_cookies, timeout=30) as http:
             try:
                 resp = await http.get(url)
             except Exception as e:
