@@ -30,7 +30,7 @@ async def handle_search_results(results: SearchResults, user_id: int, extra: boo
                 user_id=user_id, picture_id=item["id"]
             ).exists()
     return {
-        "total": results.total_hits,
+        "total": results.estimated_total_hits,
         "data": data,
     }
 
