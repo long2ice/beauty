@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
 
+    @property
+    def is_auditing(self) -> bool:
+        return self.ENV == "auditing"
+
 
 settings = Settings()
 TORTOISE_ORM = {

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 
-from beauty.depends import auth_required
+from beauty.depends import auth_required, get_search_filters
 from beauty.models import Collection, Favorite, Like, Picture
 from beauty.responses import CollectionResponse
 from beauty.responses import Picture as PictureModel
@@ -12,12 +12,17 @@ router = APIRouter()
 
 
 @router.get("/search", response_model=CollectionResponse)
-async def search_collections(keyword: str = Query(..., max_length=10), page: Page = Depends(Page)):
+async def search_collections(
+    keyword: str = Query(..., max_length=10),
+    page: Page = Depends(Page),
+    search_filters=Depends(get_search_filters),
+):
     result = await collections_index.search(
         keyword,
         limit=page.limit,
         offset=page.offset,
         sort=["id:desc"],
+        filter=search_filters,
     )
     data = result.hits
     for collection in data:

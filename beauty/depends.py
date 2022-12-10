@@ -12,6 +12,7 @@ from pydantic import constr
 from starlette.requests import Request
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
+from beauty.enums import PictureCategory
 from beauty.models import User
 from beauty.settings import JWT_ALGORITHM, settings
 from beauty.third.redis import Key, redis
@@ -93,3 +94,9 @@ async def get_current_user(user_id=Depends(auth_required)):
     if not user:
         raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
+
+
+def get_search_filters():
+    if settings.is_auditing:
+        return f"category != {PictureCategory.beauty.value}"
+    return f"category = {PictureCategory.beauty.value}"

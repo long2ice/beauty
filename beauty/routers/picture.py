@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from meilisearch_python_async.models.search import SearchResults
 from pydantic import NonNegativeInt
 
-from beauty.depends import auth_required, store_keyword
+from beauty.depends import auth_required, get_search_filters, store_keyword
 from beauty.models import Favorite, Like, Picture
 from beauty.responses import PictureResponse
 from beauty.schemas import Page
@@ -35,13 +35,17 @@ async def handle_search_results(results: SearchResults, user_id: int, extra: boo
 
 @router.get("", response_model=PictureResponse)
 async def get_pictures(
-    page: Page = Depends(Page), extra: bool = False, user_id=Depends(auth_required)
+    page: Page = Depends(Page),
+    extra: bool = False,
+    user_id=Depends(auth_required),
+    search_filters=Depends(get_search_filters),
 ):
     results = await pictures_index.search(
         None,
         offset=page.offset,
         limit=page.limit,
         sort=["id:desc"],
+        filter=search_filters,
         attributes_to_retrieve=[
             "id",
             "favorite_count",
@@ -89,12 +93,16 @@ async def like_picture(pk: int, user_id=Depends(auth_required)):
 
 @router.get("/hot", response_model=PictureResponse)
 async def get_hot_pictures(
-    page: Page = Depends(Page), extra: bool = False, user_id=Depends(auth_required)
+    page: Page = Depends(Page),
+    extra: bool = False,
+    user_id=Depends(auth_required),
+    search_filters=Depends(get_search_filters),
 ):
     results = await pictures_index.search(
         "",
         limit=page.limit,
         offset=page.offset,
+        filter=search_filters,
         sort=["like_count:desc"],
         attributes_to_retrieve=[
             "id",
@@ -116,11 +124,13 @@ async def search_pictures(
     page: Page = Depends(Page),
     extra: bool = False,
     user_id=Depends(auth_required),
+    search_filters=Depends(get_search_filters),
 ):
     results = await pictures_index.search(
         keyword,
         limit=page.limit,
         offset=page.offset,
+        filter=search_filters,
         sort=["like_count:desc"],
         attributes_to_retrieve=[
             "id",

@@ -5,7 +5,7 @@ import requests_html
 from bs4 import BeautifulSoup
 from tortoise.exceptions import IntegrityError
 
-from beauty.enums import Origin
+from beauty.enums import Origin, PictureCategory
 from beauty.models import Collection, Picture
 from beauty.origin import OriginBase
 
@@ -13,6 +13,7 @@ from beauty.origin import OriginBase
 class Win3000MN(OriginBase):
     homepage = "https://www.win3000.com"
     origin = Origin.win3000
+    category = PictureCategory.beauty
 
     def get_page_url(self, page: int) -> str:
         return f"{self.homepage}/mbizhi/mn/p{page}/"
@@ -23,11 +24,13 @@ class Win3000MN(OriginBase):
                 title=title,
                 origin=self.origin,
                 description=describe,
+                category=self.category,
             )
         except IntegrityError:
             collection = await Collection.get(title=title, origin=self.origin)
             collection.description = describe
-            await collection.save(update_fields=["description"])
+            collection.category = self.category
+            await collection.save(update_fields=["description", "category"])
         return collection
 
     async def _get_pics(self, href: str, title: str):
@@ -49,6 +52,7 @@ class Win3000MN(OriginBase):
                     origin_url=url,
                     description=works_tag,
                     collection=collection,
+                    category=self.category,
                 )
             )
         return pics
@@ -67,5 +71,7 @@ class Win3000MN(OriginBase):
 
 
 class Win3000FJ(Win3000MN):
+    category = PictureCategory.scenery
+
     def get_page_url(self, page: int) -> str:
         return f"{self.homepage}/mbizhi/fj/p{page}/"

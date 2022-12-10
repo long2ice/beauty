@@ -9,9 +9,10 @@ from loguru import logger
 from rearq import ReArq
 from rearq.constants import JOB_TIMEOUT_UNLIMITED
 from tortoise import Tortoise
+from tortoise.expressions import Q
 
 from beauty import constants, utils
-from beauty.enums import Origin
+from beauty.enums import Origin, PictureCategory
 from beauty.models import Collection, Picture
 from beauty.origin.netbian import NetBian
 from beauty.settings import settings
@@ -71,7 +72,10 @@ async def get_origins():
 
 @rearq.task(cron="0 1 * * *")
 async def get_tags():
-    pictures = await Picture.filter().only("description")
+    if settings.is_auditing:
+        pictures = await Picture.filter(~Q(category=PictureCategory.beauty)).only("description")
+    else:
+        pictures = await Picture.filter(category=PictureCategory.beauty).only("description")
     for picture in pictures:
         result = jieba.cut(picture.description)
         for word in result:
@@ -98,7 +102,7 @@ async def sync_pictures():
             .order_by("id")
             .limit(limit)
             .offset(offset)
-            .only("id", "description", "created_at")
+            .only("id", "description", "category")
         )
         if not pics:
             break
@@ -120,7 +124,7 @@ async def sync_collections():
             .order_by("id")
             .limit(limit)
             .offset(offset)
-            .only("id", "title", "description")
+            .only("id", "title", "description", "category")
         )
         if not collections:
             break

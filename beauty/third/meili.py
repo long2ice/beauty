@@ -12,6 +12,11 @@ async def init():
     await pictures_index.update_sortable_attributes(
         sortable_attributes=["id", "favorite_count", "like_count"]
     )
+    await pictures_index.update_filterable_attributes(
+        [
+            "category",
+        ]
+    )
     await pictures_index.update_ranking_rules(
         [
             "sort",
@@ -33,6 +38,11 @@ async def init():
             "exactness",
         ]
     )
+    await collections_index.update_filterable_attributes(
+        [
+            "category",
+        ]
+    )
 
 
 async def add_collections(*collections: Collection):
@@ -41,6 +51,7 @@ async def add_collections(*collections: Collection):
             "id": c.pk,
             "title": c.title,
             "description": c.description,
+            "category": c.category,
         }
         for c in collections
     ]
@@ -54,6 +65,7 @@ async def add_pictures(*pictures: Picture):
             "description": p.description,
             "favorite_count": await p.favorites.all().count(),
             "like_count": await p.likes.all().count(),
+            "category": p.category,
         }
         for p in pictures
     ]

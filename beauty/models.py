@@ -1,6 +1,6 @@
 from tortoise import Model, fields
 
-from beauty.enums import Origin
+from beauty.enums import Origin, PictureCategory
 
 
 class User(Model):
@@ -22,6 +22,7 @@ class Picture(Model):
     collection: fields.ForeignKeyRelation["Collection"] = fields.ForeignKeyField(
         "models.Collection", null=True
     )
+    category = fields.CharEnumField(PictureCategory, default=PictureCategory.beauty)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
     favorites: fields.ReverseRelation["Favorite"]
@@ -40,6 +41,7 @@ class Favorite(Model):
 class Collection(Model):
     title = fields.CharField(max_length=200)
     description = fields.CharField(max_length=500)
+    category = fields.CharEnumField(PictureCategory, default=PictureCategory.beauty)
     origin = fields.CharEnumField(Origin)
     pictures: fields.ReverseRelation[Picture]
 
