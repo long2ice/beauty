@@ -26,9 +26,11 @@ async def handle_search_results(results: SearchResults, user_id: int, extra: boo
             item["favorite"] = await Favorite.filter(
                 user_id=user_id, picture_id=item["id"]
             ).exists()
-            item["like"] = await Like.filter(user_id=user_id, picture_id=item["id"]).exists()
+            item["like"] = await Like.filter(
+                user_id=user_id, picture_id=item["id"]
+            ).exists()
     return {
-        "total": results.estimated_total_hits,
+        "total": results.total_hits,
         "data": data,
     }
 
@@ -164,8 +166,12 @@ async def get_favorite_pictures(
     if extra:
         for picture in data:
             picture["favorite"] = True
-            picture["like"] = await Like.filter(user_id=user_id, picture_id=picture["id"]).exists()
-            picture["favorite_count"] = await Favorite.filter(picture_id=picture["id"]).count()
+            picture["like"] = await Like.filter(
+                user_id=user_id, picture_id=picture["id"]
+            ).exists()
+            picture["favorite_count"] = await Favorite.filter(
+                picture_id=picture["id"]
+            ).count()
             picture["like_count"] = await Like.filter(picture_id=picture["id"]).count()
     return {
         "total": await Favorite.filter(user_id=user_id).count(),
