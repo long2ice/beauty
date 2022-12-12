@@ -98,7 +98,7 @@ class NetBian(OriginBase):
             src = src.split(".jpg")[0][:-10] + ".jpg"
             pics.append(
                 Picture(
-                    origin=Origin.netbian,
+                    origin=self.origin,
                     origin_url=src,
                     description=alt,
                 )
