@@ -27,7 +27,7 @@ playwright = "*"
 jieba = "*"
 minio = "*"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 black = "*"
 isort = "*"
 mypy = "*"
@@ -36,9 +36,6 @@ pytest-asyncio = "*"
 ruff = "*"
 types-cachetools = "*"
 types-redis = "*"
-
-[tool.poetry.group.dev.dependencies]
-types-aiofiles = "*"
 
 [tool.aerich]
 tortoise_orm = "beauty.settings.TORTOISE_ORM"
