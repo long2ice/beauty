@@ -19,7 +19,7 @@ class LoginBody(BaseModel):
 async def login(body: LoginBody):
     session = await code_to_session(body.code)
     try:
-        user = await User.get_or_create(openid=session.openid)
+        user, _ = await User.get_or_create(openid=session.openid)
     except IntegrityError:
         user = await User.get(openid=session.openid)
     token = jwt.encode({"user_id": user.pk}, settings.SECRET, algorithm=JWT_ALGORITHM)
