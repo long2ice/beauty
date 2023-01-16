@@ -7,15 +7,17 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
     `id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `title` VARCHAR(200) NOT NULL,
     `description` VARCHAR(500) NOT NULL,
-    `origin` VARCHAR(15) NOT NULL  COMMENT 'netbian: www.netbian.com\nwin3000: www.win3000.com',
+    `category` VARCHAR(2) NOT NULL  COMMENT 'beauty: 美女\nscenery: 风景' DEFAULT '美女',
+    `origin` VARCHAR(15) NOT NULL  COMMENT 'netbian: www.netbian.com\nwin3000: www.win3000.com\nbcoderss: m.bcoderss.com\ncnmo: m.cnmo.com',
     UNIQUE KEY `uid_collection_title_02772d` (`title`, `origin`)
 ) CHARACTER SET utf8mb4;
 CREATE TABLE IF NOT EXISTS `picture` (
     `id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `url` VARCHAR(500)  UNIQUE,
     `origin_url` VARCHAR(500) NOT NULL UNIQUE,
-    `origin` VARCHAR(15) NOT NULL  COMMENT 'netbian: www.netbian.com\nwin3000: www.win3000.com',
+    `origin` VARCHAR(15) NOT NULL  COMMENT 'netbian: www.netbian.com\nwin3000: www.win3000.com\nbcoderss: m.bcoderss.com\ncnmo: m.cnmo.com',
     `description` LONGTEXT,
+    `category` VARCHAR(2) NOT NULL  COMMENT 'beauty: 美女\nscenery: 风景' DEFAULT '美女',
     `created_at` DATETIME(6) NOT NULL  DEFAULT CURRENT_TIMESTAMP(6),
     `updated_at` DATETIME(6) NOT NULL  DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     `collection_id` INT,
