@@ -6,9 +6,3 @@ services:
     env_file: .env
     network_mode: host
     image: beauty
-  rearq-worker:
-    network_mode: host
-    env_file: .env
-    image: beauty
-    restart: always
-    command: rearq beauty.tasks:rearq worker -t

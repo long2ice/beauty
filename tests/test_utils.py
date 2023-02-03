@@ -2,7 +2,7 @@ import asyncio
 
 from beauty.enums import Origin
 from beauty.models import Picture
-from beauty.tasks import download_and_upload
+from beauty.rearq.tasks import download_and_upload
 
 
 async def test_download_and_upload():

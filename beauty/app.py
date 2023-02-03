@@ -1,3 +1,5 @@
+import asyncio
+
 from aerich import Command
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
@@ -15,9 +17,10 @@ from beauty.exceptions import (
     validation_exception_handler,
 )
 from beauty.logging import init_logging
+from beauty.rearq import start
+from beauty.rearq.tasks import rearq
 from beauty.routers import router
 from beauty.settings import TORTOISE_ORM, settings
-from beauty.tasks import rearq
 from beauty.third import meili
 from beauty.third.redis import redis
 
@@ -59,6 +62,7 @@ async def startup():
     await aerich.init()
     await aerich.upgrade()
     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+    asyncio.ensure_future(start())
 
 
 @app.on_event("shutdown")
