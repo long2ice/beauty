@@ -13,7 +13,7 @@ version = "0.1.0"
 aerich = "^0.7.0"
 asyncmy = "*"
 cachetools = "*"
-meilisearch-python-async = "^0.29.2"
+meilisearch-python-async = "^1.0.0"
 python = "^3.10"
 python-dotenv = "*"
 rearq = { git = "https://github.com/long2ice/rearq.git", branch = "dev" }
