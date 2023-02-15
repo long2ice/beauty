@@ -1757,7 +1757,7 @@ postgres = ["asyncpg"]
 type = "git"
 url = "https://github.com/long2ice/rearq.git"
 reference = "dev"
-resolved_reference = "ee2efcef4e14474684e87b8a0516df75fa7735ae"
+resolved_reference = "83652a9953db82086f45562fba6e485ceba04a4a"
 
 [[package]]
 name = "redis"
