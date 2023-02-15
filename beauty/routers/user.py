@@ -22,8 +22,10 @@ async def update_avatar(
     user=Depends(get_current_user),
 ):
     filename = hashlib.md5(user.openid.encode()).hexdigest()
-    filename = f'{constants.AVATAR}/{filename}.{avatar.filename.split(".")[-1]}'
-    await minio.upload_file(filename, avatar.content_type, BytesIO(await avatar.read()))
+    filename = f'{constants.AVATAR}/{filename}.{avatar.filename.split(".")[-1]}'  # type:ignore
+    await minio.upload_file(
+        filename, avatar.content_type, BytesIO(await avatar.read())  # type:ignore
+    )
     user.avatar = filename
     await user.save(update_fields=["avatar"])
     return user
