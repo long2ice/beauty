@@ -23,7 +23,7 @@ tenacity = "*"
 wechatpy = "*"
 fastapi-cache2 = "^0.1.9"
 cryptography = "*"
-playwright = "*"
+playwright = "^1.30.0"
 jieba = "*"
 minio = "*"
 
