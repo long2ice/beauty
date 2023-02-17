@@ -6,4 +6,4 @@ ENV POETRY_VIRTUALENVS_CREATE false
 RUN pip3 install poetry --upgrade --pre
 RUN poetry install --no-root --only main
 COPY . /beauty
-CMD ["uvicorn" ,"beauty.app:app", "--host", "0.0.0.0"]
+CMD ["python", "-m", "uvicorn", "beauty.app:app", "--host", "0.0.0.0"]
