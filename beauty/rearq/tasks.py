@@ -1,7 +1,6 @@
 import asyncio
 import hashlib
 import json
-from io import BytesIO
 
 import httpx
 import jieba
@@ -17,8 +16,8 @@ from beauty.models import Collection, Picture
 from beauty.origin.netbian import NetBian
 from beauty.settings import settings
 from beauty.third import meili
-from beauty.third.minio import upload_file
 from beauty.third.redis import Key, redis
+from beauty.third.s3 import upload_file
 
 rearq = ReArq(
     db_url=settings.DB_URL,
@@ -164,7 +163,7 @@ async def download_and_upload(sem: asyncio.Semaphore, pk: int, origin: Origin, u
                     + (hashlib.md5(url.encode()).hexdigest() + "." + url.split(".")[-1])
                 )
                 content_type = resp.headers.get("Content-Type")
-                await upload_file(objectname, content_type, BytesIO(resp.content))
+                await upload_file(objectname, content_type, resp.content)
                 await Picture.filter(id=pk).update(url=objectname)
                 return objectname
             elif resp.status_code == 404:

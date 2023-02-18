@@ -1,5 +1,4 @@
 import hashlib
-from io import BytesIO
 from typing import Optional
 
 from fastapi import APIRouter, Depends, UploadFile
@@ -7,7 +6,7 @@ from pydantic import BaseModel
 
 from beauty import constants, responses
 from beauty.depends import get_current_user
-from beauty.third import minio
+from beauty.third import s3
 
 router = APIRouter()
 
@@ -23,8 +22,8 @@ async def update_avatar(
 ):
     filename = hashlib.md5(user.openid.encode()).hexdigest()
     filename = f'{constants.AVATAR}/{filename}.{avatar.filename.split(".")[-1]}'  # type:ignore
-    await minio.upload_file(
-        filename, avatar.content_type, BytesIO(await avatar.read())  # type:ignore
+    await s3.upload_file(
+        filename, avatar.content_type, await avatar.read()  # type:ignore
     )
     user.avatar = filename
     await user.save(update_fields=["avatar"])
