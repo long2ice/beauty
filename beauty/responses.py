@@ -1,6 +1,6 @@
 from pydantic import BaseModel, root_validator
 
-from beauty.third.minio import format_url
+from beauty.third.s3 import format_url
 
 
 class User(BaseModel):

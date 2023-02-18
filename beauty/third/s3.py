@@ -22,4 +22,4 @@ async def upload_file(object_name: str, content_type: str, data: bytes):
 
 
 def format_url(url: str):
-    return f"{settings.S3_URL}/{settings.S3_BUCKET_NAME}{url}"
+    return f"{settings.S3_URL}/{settings.S3_BUCKET_NAME}/{url}"
