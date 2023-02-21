@@ -22,11 +22,11 @@ class Settings(BaseSettings):
     CACHE_EXPIRE_SECONDS: int = 60
     S3_ENDPOINT: str
     S3_URL: str
-    S3_BUCKET_NAME: str = "long2ice-beauty"
+    S3_BUCKET_NAME: str
     S3_SECURE: bool = False
     S3_ACCESS_KEY: str
     S3_SECRET_KEY: str
-    S3_REGION: str
+    S3_REGION: Optional[str]
 
     class Config:
         env_file = ".env"
