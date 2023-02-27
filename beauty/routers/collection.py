@@ -29,7 +29,6 @@ async def search_collections(
         picture = await Picture.filter(collection_id=collection["id"]).only("url").first()
         if not picture:
             await Collection.filter(id=collection["id"]).delete()
-            await meili.delete_collections(collection["id"])
             continue
         collection["url"] = picture.url
     return {

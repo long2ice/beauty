@@ -1,6 +1,6 @@
 from meilisearch_python_async import Client
 
-from beauty.models import Collection, Picture
+from beauty.models import Picture
 from beauty.settings import settings
 
 client = Client(url=settings.MEILI_URL, api_key=settings.MEILI_MASTER_KEY)
@@ -45,20 +45,7 @@ async def init():
     )
 
 
-async def add_collections(*collections: Collection):
-    data = [
-        {
-            "id": c.pk,
-            "title": c.title,
-            "description": c.description,
-            "category": c.category,
-        }
-        for c in collections
-    ]
-    return await collections_index.add_documents(data)
-
-
-async def add_pictures(*pictures: Picture):
+async def update_pictures(*pictures: Picture):
     data = [
         {
             "id": p.pk,
@@ -69,12 +56,4 @@ async def add_pictures(*pictures: Picture):
         }
         for p in pictures
     ]
-    return await pictures_index.add_documents(data)
-
-
-async def delete_pictures(*pk: int):
-    return await pictures_index.delete_documents([str(p) for p in pk])
-
-
-async def delete_collections(*pk: int):
-    return await collections_index.delete_documents([str(p) for p in pk])
+    return await pictures_index.update_documents(data)

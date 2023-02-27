@@ -12,7 +12,7 @@ from tortoise.expressions import Q
 
 from beauty import constants, utils
 from beauty.enums import Origin, PictureCategory
-from beauty.models import Collection, Picture
+from beauty.models import Picture
 from beauty.origin.netbian import NetBian
 from beauty.settings import settings
 from beauty.third import meili
@@ -92,50 +92,6 @@ async def get_tags():
     return await redis.zrange(Key.tags, 0, -1)
 
 
-@rearq.task(cron="0 3 * * *")
-async def sync_pictures():
-    limit = 10000
-    offset = 0
-    total = 0
-    while True:
-        pics = (
-            await Picture.all()
-            .order_by("id")
-            .limit(limit)
-            .offset(offset)
-            .only("id", "description", "category")
-        )
-        if not pics:
-            break
-        total += len(pics)
-        await meili.add_pictures(*pics)
-        logger.success(f"Successfully save {len(pics)} pics, offset: {offset}")
-        offset += limit
-    return total
-
-
-@rearq.task(cron="0 4 * * *")
-async def sync_collections():
-    limit = 10000
-    offset = 0
-    total = 0
-    while True:
-        collections = (
-            await Collection.all()
-            .order_by("id")
-            .limit(limit)
-            .offset(offset)
-            .only("id", "title", "description", "category")
-        )
-        if not collections:
-            break
-        total += len(collections)
-        await meili.add_collections(*collections)
-        logger.success(f"Successfully save {len(collections)} collections, offset: {offset}")
-        offset += limit
-    return total
-
-
 async def download_and_upload(sem: asyncio.Semaphore, pk: int, origin: Origin, url: str):
     async with sem:
         headers = {}
@@ -168,7 +124,6 @@ async def download_and_upload(sem: asyncio.Semaphore, pk: int, origin: Origin, u
                 return objectname
             elif resp.status_code == 404:
                 await Picture.filter(id=pk).delete()
-                await meili.delete_pictures(pk)
             elif resp.status_code == 503 and origin == Origin.netbian:
                 await NetBian.refresh_cookies()
             else:
