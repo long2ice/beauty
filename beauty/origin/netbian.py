@@ -53,6 +53,7 @@ class NetBian(OriginBase):
                         }
                     ),
                 )
+            await browser.close()
             return cookies
 
     async def request(self, url: str):
@@ -82,6 +83,8 @@ class NetBian(OriginBase):
                 default_encoding="gbk",
             )
             res.html.__dict__.update(html.__dict__)
+            await browser.close()
+
         return res
 
     async def parse(self, res: requests_html.HTMLResponse) -> list[Picture]:

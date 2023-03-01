@@ -5,7 +5,6 @@ from beauty.models import Collection, Favorite, Like, Picture
 from beauty.responses import CollectionResponse
 from beauty.responses import Picture as PictureModel
 from beauty.schemas import Page
-from beauty.third import meili
 from beauty.third.meili import collections_index
 
 router = APIRouter()

@@ -15,7 +15,6 @@ from beauty.enums import Origin, PictureCategory
 from beauty.models import Picture
 from beauty.origin.netbian import NetBian
 from beauty.settings import settings
-from beauty.third import meili
 from beauty.third.redis import Key, redis
 from beauty.third.s3 import upload_file
 
