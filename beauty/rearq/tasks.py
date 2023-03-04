@@ -63,7 +63,7 @@ async def get_origin_pictures(origin: str):
     return count
 
 
-@rearq.task(cron="0 30 * * *")
+@rearq.task(cron="0 1 * * *")
 async def get_origins():
     origins = utils.get_origins()
     for origin in origins.keys():
