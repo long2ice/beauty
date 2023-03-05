@@ -53,6 +53,7 @@ class NetBian(OriginBase):
                         }
                     ),
                 )
+            await page.close()
             await context.close()
             await browser.close()
             return cookies
@@ -84,6 +85,7 @@ class NetBian(OriginBase):
                 default_encoding="gbk",
             )
             res.html.__dict__.update(html.__dict__)
+            await page.close()
             await context.close()
             await browser.close()
 
