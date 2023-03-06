@@ -15,6 +15,12 @@ class NetBian(OriginBase):
     homepage = "http://www.netbian.com"
     origin = Origin.netbian
 
+    def __init__(self):
+        super().__init__()
+        self.p = async_playwright()
+        self._inited = False
+        self.browser = None
+
     def get_page_url(self, page: int) -> str:
         if page == 1:
             return f"{self.homepage}/shouji/meinv/index.html"
@@ -28,67 +34,67 @@ class NetBian(OriginBase):
                 return True
         return False
 
-    @classmethod
-    async def refresh_cookies(cls):
+    async def _init(self):
+        if self._inited:
+            return
+        self.browser = await (await self.p.__aenter__()).chromium.launch()
+        self._inited = True
+
+    async def refresh_cookies(self):
+        await self._init()
         picture = await Picture.filter(origin=Origin.netbian).only("origin_url").first()
         if not picture:
             return
-        async with async_playwright() as p:
-            browser = await p.chromium.launch()
-            user_agent = UserAgent().random
-            context = await browser.new_context(user_agent=user_agent)
-            page = await context.new_page()
-            await page.goto(picture.origin_url)
-            await page.reload()
-            await asyncio.sleep(5)
-            cookies = await context.cookies()
-            if NetBian.is_valid_cookies(cookies):
-                await redis.hset(
-                    Key.cookies,
-                    NetBian.origin.value,
-                    json.dumps(
-                        {
-                            "user_agent": user_agent,
-                            "cookies": cookies,
-                        }
-                    ),
-                )
-            await page.close()
-            await context.close()
-            await browser.close()
-            return cookies
+        user_agent = UserAgent().random
+        context = await self.browser.new_context(user_agent=user_agent)
+        page = await context.new_page()
+        await page.goto(picture.origin_url)
+        await page.reload()
+        await asyncio.sleep(5)
+        cookies = await context.cookies()
+        if NetBian.is_valid_cookies(cookies):
+            await redis.hset(
+                Key.cookies,
+                NetBian.origin.value,
+                json.dumps(
+                    {
+                        "user_agent": user_agent,
+                        "cookies": cookies,
+                    }
+                ),
+            )
+        await page.close()
+        await context.close()
+        return cookies
 
     async def request(self, url: str):
+        await self._init()
         res = await super().request(url)
         if res.status_code == 200:
             return res
-        async with async_playwright() as p:
-            browser = await p.chromium.launch()
-            user_agent = UserAgent().random
-            context = await browser.new_context(user_agent=user_agent)
-            page = await context.new_page()
-            await page.goto(url)
-            await page.reload()
-            await asyncio.sleep(5)
-            content = await page.content()
-            cookies = await context.cookies()
-            if self.is_valid_cookies(cookies):
-                self.asession.headers.update({"User-Agent": user_agent})
-                for cookie in cookies:
-                    self.asession.cookies.set(
-                        cookie["name"],
-                        cookie["value"],
-                    )
-            html = requests_html.HTML(
-                url=url,
-                html=content.encode("gbk"),
-                default_encoding="gbk",
-            )
-            res.html.__dict__.update(html.__dict__)
-            await page.close()
-            await context.close()
-            await browser.close()
-
+        user_agent = UserAgent().random
+        context = await self.browser.new_context(user_agent=user_agent)
+        page = await context.new_page()
+        await page.goto(url)
+        await page.reload()
+        await asyncio.sleep(5)
+        content = await page.content()
+        cookies = await context.cookies()
+        if self.is_valid_cookies(cookies):
+            self.asession.headers.update({"User-Agent": user_agent})
+            for cookie in cookies:
+                self.asession.cookies.set(
+                    cookie["name"],
+                    cookie["value"],
+                )
+        html = requests_html.HTML(
+            url=url,
+            html=content.encode("gbk"),
+            default_encoding="gbk",
+        )
+        res.html.__dict__.update(html.__dict__)
+        await page.close()
+        await context.close()
         return res
 
     async def parse(self, res: requests_html.HTMLResponse) -> list[Picture]:
@@ -111,3 +117,8 @@ class NetBian(OriginBase):
                 )
             )
         return pics
+
+    async def close(self):
+        await super().close()
+        await self.browser.close()
+        await self.p.__aexit__(None, None, None)

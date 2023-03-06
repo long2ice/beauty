@@ -124,7 +124,7 @@ async def download_and_upload(sem: asyncio.Semaphore, pk: int, origin: Origin, u
             elif resp.status_code == 404:
                 await Picture.filter(id=pk).delete()
             elif resp.status_code == 503 and origin == Origin.netbian:
-                await NetBian.refresh_cookies()
+                await NetBian().refresh_cookies()
             else:
                 logger.error(f"Download picture failed, url: {url}")
 
