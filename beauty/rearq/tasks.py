@@ -1,4 +1,3 @@
-import asyncio
 import hashlib
 import json
 
@@ -91,55 +90,46 @@ async def get_tags():
     return await redis.zrange(Key.tags, 0, -1)
 
 
-async def download_and_upload(sem: asyncio.Semaphore, pk: int, origin: Origin, url: str):
-    async with sem:
-        headers = {}
-        httpx_cookies = None
-        if origin == Origin.netbian:
-            cookies = await redis.hget(Key.cookies, origin.value)  # type: ignore
-            if cookies:
-                cookies = json.loads(cookies)
-                user_agent = cookies.get("user_agent")
-                cookies = cookies.get("cookies")
-                headers["User-Agent"] = user_agent
-                httpx_cookies = httpx.Cookies()
-                for cookie in cookies:
-                    httpx_cookies.set(cookie["name"], cookie["value"])
-        async with httpx.AsyncClient(headers=headers, cookies=httpx_cookies, timeout=30) as http:
-            try:
-                resp = await http.get(url)
-            except Exception as e:
-                logger.error(f"download {url} error: {e}")
-                return
-            if resp.status_code == 200:
-                objectname = (
-                    constants.PICTURES
-                    + "/"
-                    + (hashlib.md5(url.encode()).hexdigest() + "." + url.split(".")[-1])
-                )
-                content_type = resp.headers.get("Content-Type")
-                await upload_file(objectname, content_type, resp.content)
-                await Picture.filter(id=pk).update(url=objectname)
-                return objectname
-            elif resp.status_code == 404:
-                await Picture.filter(id=pk).delete()
-            elif resp.status_code == 503 and origin == Origin.netbian:
-                await NetBian().refresh_cookies()
-            else:
-                logger.error(f"Download picture failed, url: {url}")
+async def download_and_upload(pk: int, origin: Origin, url: str):
+    headers = {}
+    httpx_cookies = None
+    if origin == Origin.netbian:
+        cookies = await redis.hget(Key.cookies, origin.value)  # type: ignore
+        if cookies:
+            cookies = json.loads(cookies)
+            user_agent = cookies.get("user_agent")
+            cookies = cookies.get("cookies")
+            headers["User-Agent"] = user_agent
+            httpx_cookies = httpx.Cookies()
+            for cookie in cookies:
+                httpx_cookies.set(cookie["name"], cookie["value"])
+    async with httpx.AsyncClient(headers=headers, cookies=httpx_cookies, timeout=30) as http:
+        try:
+            resp = await http.get(url)
+        except Exception as e:
+            logger.error(f"download {url} error: {e}")
+            return
+        if resp.status_code == 200:
+            objectname = (
+                constants.PICTURES
+                + "/"
+                + (hashlib.md5(url.encode()).hexdigest() + "." + url.split(".")[-1])
+            )
+            content_type = resp.headers.get("Content-Type")
+            await upload_file(objectname, content_type, resp.content)
+            await Picture.filter(id=pk).update(url=objectname)
+            return objectname
+        elif resp.status_code == 404:
+            await Picture.filter(id=pk).delete()
+        elif resp.status_code == 503 and origin == Origin.netbian:
+            await NetBian().refresh_cookies()
+        else:
+            logger.error(f"Download picture failed, url: {url}")
 
 
 @rearq.task(cron="0 * * * *", job_timeout=JOB_TIMEOUT_UNLIMITED, run_with_lock=True)
-async def download_pictures(concurrency: int = 10):
-    sem = asyncio.Semaphore(concurrency)
-
+async def download_pictures():
     pictures = await Picture.filter(url=None).only("id", "origin", "origin_url")
-    tasks = []
     for picture in pictures:
-        tasks.append(
-            asyncio.ensure_future(
-                download_and_upload(sem, picture.pk, picture.origin, picture.origin_url)
-            )
-        )
-    await asyncio.gather(*tasks)
+        await download_and_upload(picture.pk, picture.origin, picture.origin_url)
     return len(pictures)
